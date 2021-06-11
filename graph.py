@@ -182,8 +182,6 @@ class GraphPage(tk.Frame):
                 popupmesg(" ","Please try again")          
 
         tk.Frame.__init__(self, parent)
-        label = ttk.Label(self, text="Put spaces between parts:", font=("Verdana", 8))
-        label2 = ttk.Label(self, text="3x^2 'space' +2x", font=("Verdana", 8))
 
         #text inputs
         graphIn = ttk.Entry(self, width="23")
@@ -199,20 +197,18 @@ class GraphPage(tk.Frame):
         button1 = ttk.Button(self, text="Enter", command= button1_command)
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
         
-        graphLabel.grid(row=3,column=0, pady=10)
-        label.grid(row=4,column=0, padx=5)
-        label2.grid(row=4,column=1, padx=5)
+        graphLabel.grid(row=0,column=0, pady=25)
         #aLabel.grid(row=2,column=0)
         #bLabel.grid(row=3,column=0)
         #cLabel.grid(row=4,column=0)
         #dLabel.grid(row=5,column=0)
-        graphIn.grid(row=3,column=1, pady=5)
+        graphIn.grid(row=0,column=1, pady=25)
         #aIn.grid(row=2,column=1, pady=5)
         #bIn.grid(row=3,column=1, pady=5)
         #cIn.grid(row=4,column=1, pady=5)
         #dIn.grid(row=5,column=1, pady=5)
-        button1.grid(row=6,column=1, pady=30)
-        button2.grid(row=6,column=0, pady=30, padx=60)
+        button1.grid(row=1,column=1, pady=8)
+        button2.grid(row=1,column=0, pady=8, padx=60)
 
 class circlePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -397,8 +393,14 @@ class checkVars():
             i += 1
 
         graph = graph.replace("^", "**")
-        #print(graph)
 
+        #adds 'spaces' inbertween parts
+        for z in range(0,len(graph)):
+            if graph[z] == "+" and graph[z-1] != " ":
+                graph = graph[:z] + " " + graph[z:]
+
+            if graph[z] == "-" and graph[z-1] != " ":
+                graph = graph[:z] + " " + graph[z:]
 
         #try:
          #   a = float(a)
