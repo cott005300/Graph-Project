@@ -127,25 +127,6 @@ class PageTwo(tk.Frame):
         global s
         global roots
 
-        def button3_command():
-            global roots
-            global graph, drawn
-            global org_graph
-            global turning_points
-            global x, y
-            if x and y:
-                graph_details.details()
-                if roots:
-                    roots_string = "\n              ".join([str(item) for item in roots])
-                    if turning_points:
-                        turning_points_string = "\n                          ".join([str(item) for item in turning_points])
-                        popupmesg(org_graph , "Root(s) = " + roots_string + "\n \n" + "Turning point(s) = " + turning_points_string) 
-                    else:
-                        popupmesg(org_graph , "Roots = " + roots_string) 
-                elif turning_points:
-                    turning_points_string = "\n                          ".join([str(item) for item in turning_points])
-                    popupmesg(org_graph , "Turning point(s) = " + turning_points_string)
-
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Graph Controls:", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
@@ -160,10 +141,8 @@ class PageTwo(tk.Frame):
         wave_button.pack(pady=5)
         Rline_button = ttk.Button(self, text="Regression Line", command=lambda: controller.show_frame(RlinePage))
         Rline_button.pack(pady=5)
-        button3 = ttk.Button(self, text="Details", command= button3_command)
-        button3.pack(pady=20)
         Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
-        Home_button.pack()
+        Home_button.pack(pady=25)
 
         toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
@@ -176,11 +155,35 @@ class GraphPage(tk.Frame):
     def __init__(self, parent, controller):
         global canvas
         global graph #a, b, c, d 
+
+        def check_box(self):
+            if self.Details.get() == 0:
+                self.Details.set(1)
+            else:
+                self.Details.set(0)
+            #print(self.Details.get())
         
-        def button1_command():
+        def button1_command(self):
+            global roots
+            global graph
+            global org_graph
+            global turning_points
+            global x, y
             checkVars.check_polynomial(checkVars, graphIn) #aIn, bIn, cIn, dIn)
             if draw.polynomial(draw, False):
                 graphIn.delete(0, tk.END)
+                if self.Details.get() == 1:
+                    a, b, c, d, graph_type = graph_details.details()
+                    if roots:
+                        roots_string = "\n              ".join([str(item) for item in roots])
+                        if turning_points:
+                            turning_points_string = "\n                          ".join([str(item) for item in turning_points])
+                            popupmesg(org_graph ,"Graph type = "+graph_type+"\na = "+str(a)+"  b = "+str(b)+"  c = "+str(c)+"  d = "+str(d)+"\n\nRoot(s) = " + roots_string + "\n \n" + "Turning point(s) = " + turning_points_string) 
+                        else:
+                            popupmesg(org_graph ,"Graph type = "+graph_type+"\na = "+str(a)+"  b = "+str(b)+"  c = "+str(c)+"  d = "+str(d)+"\n\nRoots = " + roots_string) 
+                    elif turning_points:
+                        turning_points_string = "\n                          ".join([str(item) for item in turning_points])
+                        popupmesg(org_graph ,"Graph type = "+graph_type+"\na = "+str(a)+"  b ="+str(b)+"  c = "+str(c)+"  d = "+str(d)+"\n\nTurning point(s) = " + turning_points_string)
                 controller.show_frame(PageTwo)
             else:
                 popupmesg(" ","Please try again")          
@@ -198,7 +201,9 @@ class GraphPage(tk.Frame):
         #bLabel = ttk.Label(self, text="b = ", font=("Verdana", 8))
         #cLabel = ttk.Label(self, text="c = ", font=("Verdana", 8))
         #dLabel = ttk.Label(self, text="d = ", font=("Verdana", 8))
-        button1 = ttk.Button(self, text="Enter", command= button1_command)
+        self.Details = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Show details", variable=self.Details, onvalue=True, command=lambda: check_box(self))
+        button1 = ttk.Button(self, text="Enter", command=lambda: button1_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
         
         graphLabel.grid(row=0,column=0, pady=25)
@@ -211,8 +216,9 @@ class GraphPage(tk.Frame):
         #bIn.grid(row=3,column=1, pady=5)
         #cIn.grid(row=4,column=1, pady=5)
         #dIn.grid(row=5,column=1, pady=5)
-        button1.grid(row=1,column=1, pady=8)
-        button2.grid(row=1,column=0, pady=8, padx=60)
+        tick.grid(row=1, column=1, pady=5)
+        button1.grid(row=2,column=1, pady=5)
+        button2.grid(row=2,column=0, pady=5, padx=60)
 
 class circlePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -747,6 +753,7 @@ class graph_details():
         else:
             graph_details.search_roots()
             graph_details.search_TP()
+        return a, b, c, d, graph_type
 
     def search_roots():
         global graph
