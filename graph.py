@@ -1,3 +1,4 @@
+from logging import INFO
 import re
 import math
 import matplotlib
@@ -8,7 +9,7 @@ from matplotlib import style
 from matplotlib import pyplot as plt
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import Label, ttk
 
 from math import sqrt as sqrt
 
@@ -86,7 +87,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, RlinePage):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, RlinePage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -148,18 +149,21 @@ class PageTwo(tk.Frame):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Graph Controls:", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
-        Home_button = ttk.Button(self, text="Home", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
-        Home_button.pack(pady=5)
-        Polynomial_button= ttk.Button(self, text="Polynomial", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
-        Polynomial_button.pack(pady=5)
-        circle_button = ttk.Button(self, text="Circle", command=lambda: controller.show_frame(circlePage))
-        circle_button.pack(pady=5)
+        
         point_button = ttk.Button(self, text="Point", command=lambda: controller.show_frame(PointPage))
         point_button.pack(pady=5)
+        circle_button = ttk.Button(self, text="Circle", command=lambda: controller.show_frame(circlePage))
+        circle_button.pack(pady=5)
+        Polynomial_button= ttk.Button(self, text="Polynomial", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
+        Polynomial_button.pack(pady=5)
+        wave_button = ttk.Button(self, text="Wave", command=lambda: controller.show_frame(wavePage))                #lambda allows you to pass things into function
+        wave_button.pack(pady=5)
         Rline_button = ttk.Button(self, text="Regression Line", command=lambda: controller.show_frame(RlinePage))
         Rline_button.pack(pady=5)
         button3 = ttk.Button(self, text="Details", command= button3_command)
-        button3.pack(pady=15)
+        button3.pack(pady=20)
+        Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
+        Home_button.pack()
 
         toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
@@ -277,6 +281,91 @@ class PointPage(tk.Frame):
         button1.grid(row=2,column=1, pady=10)
         button2.grid(row=2,column=0, pady=10)
 
+
+
+class wavePage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def check_box(self):
+            if self.x100.get() == 0:
+                self.x100.set(1)
+            else:
+                self.x100.set(0)
+            #print(self.x100.get())
+
+        def button_command(self,type):
+            global limit
+            global x, y
+            global colours
+            global colour_index
+            x = []
+            y = []
+            X = -limit
+            Y = 0
+            step = 0.01
+
+            if self.x100.get() == 1:
+                m = 100
+                #tick.deselect()
+            else:
+                m = 1
+                
+            if type == "Sine":                
+                while X < limit:
+                    y.append(m*(math.sin((X)*(math.pi/180))))
+                    x.append(X)
+                    X += step
+
+            elif type == "Cosine":
+                while X < limit:
+                    y.append(m*(math.cos((X)*(math.pi/180))))
+                    x.append(X)
+                    X += step
+            elif type == "Tangent":
+                while X < limit:
+                    Y = m*(math.tan((X)*(math.pi/180)))
+                    if Y < limit and Y > -limit:
+                        y.append(Y)
+                        x.append(X)
+                    elif x and y:
+                        s.plot(x,y,colours[colour_index])
+                        x = []
+                        y = []
+                    X += step
+                if x and y:
+                    s.plot(x,y,colours[colour_index], label="Tangent")
+                    s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+                    canvas.draw()
+                s.plot([90,90], [limit, -limit],"black",linestyle='dashed')
+                s.plot([-90,-90],[limit, -limit],"black",linestyle='dashed')
+                canvas.draw()
+                colour_change()
+                controller.show_frame(PageTwo)
+                return
+            else:
+                controller.show_frame(PageTwo)
+                return
+            s.plot(x,y, colours[colour_index], label=type)
+            s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+            colour_change()
+            canvas.draw()
+            controller.show_frame(PageTwo)
+            
+        self.x100 = tk.IntVar()
+        sin_button = ttk.Button(self, text="Sine", command=lambda: button_command(self,"Sine"))         #cursor="dot",
+        cos_button = ttk.Button(self, text="Cosine", command=lambda: button_command(self,"Cosine"))
+        tan_button = ttk.Button(self, text="Tangent", command=lambda: button_command(self,"Tangent"))
+        tick = tk.Checkbutton(self, text="x100", variable=self.x100, onvalue=True, command=lambda: check_box(self))
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
+
+        sin_button.pack(pady=10)
+        cos_button.pack(pady=10)
+        tan_button.pack(pady=10)
+        tick.pack(pady=10)
+        button2.pack(pady=20)
+
+
 class RlinePage(tk.Frame):
     global x, y
     def __init__(self, parent, controller):
@@ -308,7 +397,9 @@ class RlinePage(tk.Frame):
             global x, y
             global graph
             global org_graph
-            s.scatter(x, y, s=35, marker="P")
+            global colours
+            global colour_index
+            s.scatter(x, y,colours[colour_index], s=35, marker="P")
             canvas.draw()
             Xpoints.config(text="")
             Ypoints.config(text="")
@@ -837,5 +928,5 @@ class graph_details():
         graph = str(c)+"*(x) +"+str(d)
 
 app = main()
-app.geometry("360x440")
+app.geometry("360x440+825+1")
 app.mainloop()
