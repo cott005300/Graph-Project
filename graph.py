@@ -175,7 +175,7 @@ class GraphPage(tk.Frame):
         
         def button1_command():
             checkVars.check_polynomial(checkVars, graphIn) #aIn, bIn, cIn, dIn)
-            if draw.polynomial(draw, graphIn):
+            if draw.polynomial(draw, False):
                 graphIn.delete(0, tk.END)
                 controller.show_frame(PageTwo)
             else:
@@ -288,9 +288,16 @@ class RlinePage(tk.Frame):
 
         def button_command(self):
             global x, y
-            x.append(float(X_pointin.get()))
-            y.append(float(Y_pointin.get()))
-            print(x, y)
+            xIn = X_pointin.get()
+            yIn = Y_pointin.get()
+            try:
+                if int(xIn) > 200 or int(xIn) < -200 or int(yIn) > 200 or int(yIn)<-200:
+                    raise
+                x.append(float(xIn))
+                y.append(float(yIn))
+            except:
+                popupmesg("!", "I can't take that")
+                return
             X_pointin.delete(0, tk.END)
             Y_pointin.delete(0, tk.END)
             xtemp = ""
@@ -301,18 +308,41 @@ class RlinePage(tk.Frame):
             Xpoints.config(text="X Points\n"+str(xtemp))
             Ypoints.config(text="Y Points\n"+str(ytemp))
 
-        def button3_command():
-            print("finished")
+        def button3_command(self):
+            global x, y
+            global graph
+            global org_graph
+            s.scatter(x, y, s=35, marker="P")
+            canvas.draw()
+            Xpoints.config(text="")
+            Ypoints.config(text="")
+            xytemp = []
+            for z in range(0, len(x)):
+                xytemp.append([x[z], y[z]])
+            graph_details.Rline()
+            draw.polynomial(draw, True)
+            x = []
+            y = []
+            popupmesg("Regression Line", "Points: "+"\n          ".join([str(item) for item in xytemp]) +"\n\n"+org_graph)
+            controller.show_frame(PageTwo)
+
+        def back_command(self):
+            global x, y
+            x = []
+            y = []
+            Xpoints.config(text="")
+            Ypoints.config(text="")
+            controller.show_frame(PageTwo)
 
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
         Xlabel = ttk.Label(self, text="X         =", font=("Verdana", 9))
         Ylabel = ttk.Label(self, text="Y         =", font=("Verdana", 9))
-        Xpoints = ttk.Label(self, text=z, font=("Verdana", 9))
-        Ypoints = ttk.Label(self, text=z, font=("Verdana", 9))
+        Xpoints = ttk.Label(self, text="", font=("Verdana", 9))
+        Ypoints = ttk.Label(self, text="", font=("Verdana", 9))
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
-        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
-        button3 = ttk.Button(self, text="Finish", command=button3_command)
+        button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
+        button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
 
         Xlabel.grid(row=0,column=0, padx=65, pady=5)
         Ylabel.grid(row=1,column=0, padx=65, pady=5)
@@ -413,7 +443,7 @@ class checkVars():
 
 
 class draw():
-    def polynomial(self, graphIn):
+    def polynomial(self, dashed):
         global graph #a,b,c,d
         global canvas
         global colour_index
@@ -465,8 +495,10 @@ class draw():
         #    lble1 = "y="+str(b)+"x^2+"+str(c)+"x+"+str(d)
         #else:
         #    lble1 = "y="+str(a)+"x^3+"+str(b)+"x^2+"+str(c)+"x+"+str(d)
-            
-        s.plot(x,y, colours[colour_index], label=org_graph)
+        if dashed:
+            s.plot(x,y, colours[colour_index], label=org_graph, linestyle='dashed')
+        else:
+            s.plot(x,y, colours[colour_index], label=org_graph)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         colour_change()
         canvas.draw()
@@ -556,7 +588,7 @@ class graph_details():
                 else:
                     graph_type = "other"
 
-        print(abcd)
+        #print(abcd)
         #find individual values for a, b, c and d. right now they look like: 2*(x)**2
         #in the example we need to seperate the '2' out.
         for i in range(0, len(abcd)):
@@ -770,6 +802,37 @@ class graph_details():
 
     def dy_by_dx(a, b, c, d):
         return (3*a), (2*b), c
+
+    def Rline():
+        global x
+        global y
+        global graph
+        global org_graph
+        step = 1    #cannot change this
+        Xpoints = []
+        Ypoints = []
+        index = 1
+        X = 0
+        Y = 0
+        Sxy = 0
+        Sxx = 0
+        Xpoints = x
+        Ypoints = y
+        for z in range(0,len(Xpoints)):
+            X += Xpoints[z]                                                                         #sums
+            Y += Ypoints[z]
+        X = X / len(Xpoints)                                                                        #avgs
+        Y = Y / len(Ypoints)
+        for p in range(0,len(Xpoints)):
+            Sxy += (Xpoints[p]-X)*(Ypoints[p]-Y)
+            Sxx += (Xpoints[p]-X)**2
+        c = round((Sxy / Sxx),5)
+        d = round((Y-(c*X)),5)
+        if str(c)[0] == "-":
+            org_graph = "y = "+str(d)+str(c)+"x"
+        else:
+            org_graph = "y = "+str(d)+" + "+str(c)+"x"
+        graph = str(c)+"*(x) +"+str(d)
 
 app = main()
 app.geometry("360x440")
