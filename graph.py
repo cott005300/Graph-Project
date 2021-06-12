@@ -2,6 +2,8 @@ from logging import INFO
 import re
 import math
 import matplotlib
+import sys
+import os
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -77,11 +79,11 @@ class main(tk.Tk):                                                          #inh
         
         menubar = tk.Menu(container)
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="try it", command=lambda: popupmesg("!", "wow"))
         filemenu.add_command(label="Clear graph", command= clear_axis)
         filemenu.add_separator()
+        filemenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
         filemenu.add_command(label="Exit", command=quit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        menubar.add_cascade(label="Commands", menu=filemenu)
 
         tk.Tk.config(self, menu=menubar)
 
@@ -133,7 +135,7 @@ class PageTwo(tk.Frame):
         
         point_button = ttk.Button(self, text="Point", command=lambda: controller.show_frame(PointPage))
         point_button.pack(pady=5)
-        circle_button = ttk.Button(self, text="Circle", command=lambda: controller.show_frame(circlePage))
+        circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(circlePage))
         circle_button.pack(pady=5)
         Polynomial_button= ttk.Button(self, text="Polynomial", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
         Polynomial_button.pack(pady=5)
@@ -148,7 +150,6 @@ class PageTwo(tk.Frame):
         toolbar.update()
         canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
         canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
-
 
 
 class GraphPage(tk.Frame):
@@ -449,7 +450,8 @@ class checkVars():
                 graph = graph[:z] + " " + graph[z:]
 
             if graph[z] == "-" and graph[z-1] != " ":
-                graph = graph[:z] + " " + graph[z:]
+                if not(graph[z-1] == "*" and graph[z-2] == "*"):    #this is for negative powers
+                    graph = graph[:z] + " " + graph[z:]
 
         #try:
          #   a = float(a)
@@ -704,11 +706,11 @@ class graph_details():
                 if graph_type == "":
                     graph_type = "linear"
             else:
-                temp2 = int(str(abcd[pos])[temp+2])     #position of power e.g. x**'3'
-                if temp2 == 2:
+                temp2 = str(abcd[pos])[temp+2]     #position of power e.g. x**'3'
+                if temp2 == "2":
                     if graph_type == "" or graph_type == "linear":
                         graph_type = "quadratic"
-                elif temp2 == 3:
+                elif temp2 == "3":
                     if graph_type == "" or  graph_type == "quadratic" or graph_type == "linear":
                         graph_type = "cubic"
                 else:
