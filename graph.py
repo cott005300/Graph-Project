@@ -87,7 +87,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, RlinePage):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -139,7 +139,7 @@ class PageTwo(tk.Frame):
         Polynomial_button.pack(pady=5)
         wave_button = ttk.Button(self, text="Wave", command=lambda: controller.show_frame(wavePage))                #lambda allows you to pass things into function
         wave_button.pack(pady=5)
-        Rline_button = ttk.Button(self, text="Regression Line", command=lambda: controller.show_frame(RlinePage))
+        Rline_button = ttk.Button(self, text="Scatter graph", command=lambda: controller.show_frame(Scatter))
         Rline_button.pack(pady=5)
         Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
         Home_button.pack(pady=25)
@@ -256,28 +256,18 @@ class PointPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        def button_command():
-            try:
-                X_point = float(X_pointin.get())
-                Y_point = float(Y_pointin.get())
-                if X_point > 200 or X_point < -200 or Y_point > 200 or Y_point < -200:
-                    raise                   #leave 'try' statement and enter 'except' statement
+        def button_command(X_pointin, Y_pointin):
+            if draw.point(X_pointin.get(), Y_pointin.get()):  
                 X_pointin.delete(0, tk.END)
-                Y_pointin.delete(0, tk.END)
-                s.scatter(X_point, Y_point, s=30,label="("+str(X_point)+","+str(Y_point)+")")
-                s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-                colour_change()
-                canvas.draw()
+                Y_pointin.delete(0, tk.END)  
                 controller.show_frame(PageTwo)
-            except:
-                popupmesg(" ! ","Can't take that!")
-            
+                            
 
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
         Xlabel = ttk.Label(self, text="X         =", font=("Verdana", 9))
         Ylabel = ttk.Label(self, text="Y         =", font=("Verdana", 9))
-        button1 = ttk.Button(self, text="Enter", command=button_command)
+        button1 = ttk.Button(self, text="Enter", command=lambda: button_command(X_pointin, Y_pointin))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
 
         Xlabel.grid(row=0,column=0, padx=65, pady=5)
@@ -301,68 +291,19 @@ class wavePage(tk.Frame):
             #print(self.x100.get())
 
         def button_command(self,type):
-            global limit
-            global x, y
-            global colours
-            global colour_index
-            x = []
-            y = []
-            X = -limit
-            Y = 0
-            step = 0.01
-
             if self.x100.get() == 1:
                 m = 100
                 #tick.deselect()
             else:
                 m = 1
-                
-            if type == "Sine":                
-                while X < limit:
-                    y.append(m*(math.sin((X)*(math.pi/180))))
-                    x.append(X)
-                    X += step
-
-            elif type == "Cosine":
-                while X < limit:
-                    y.append(m*(math.cos((X)*(math.pi/180))))
-                    x.append(X)
-                    X += step
-            elif type == "Tangent":
-                while X < limit:
-                    Y = m*(math.tan((X)*(math.pi/180)))
-                    if Y < limit and Y > -limit:
-                        y.append(Y)
-                        x.append(X)
-                    elif x and y:
-                        s.plot(x,y,colours[colour_index])
-                        x = []
-                        y = []
-                    X += step
-                if x and y:
-                    s.plot(x,y,colours[colour_index], label="Tangent")
-                    s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-                    canvas.draw()
-                s.plot([90,90], [limit, -limit],"black",linestyle='dashed')
-                s.plot([-90,-90],[limit, -limit],"black",linestyle='dashed')
-                canvas.draw()
-                colour_change()
-                controller.show_frame(PageTwo)
-                return
-            else:
-                controller.show_frame(PageTwo)
-                return
-            s.plot(x,y, colours[colour_index], label=type)
-            s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-            colour_change()
-            canvas.draw()
+            draw.wave(type, m)
             controller.show_frame(PageTwo)
             
         self.x100 = tk.IntVar()
         sin_button = ttk.Button(self, text="Sine", command=lambda: button_command(self,"Sine"))         #cursor="dot",
         cos_button = ttk.Button(self, text="Cosine", command=lambda: button_command(self,"Cosine"))
         tan_button = ttk.Button(self, text="Tangent", command=lambda: button_command(self,"Tangent"))
-        tick = tk.Checkbutton(self, text="x100", variable=self.x100, onvalue=True, command=lambda: check_box(self))
+        tick = tk.Checkbutton(self, text="x100", variable=self.x100, command=lambda: check_box(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
 
         sin_button.pack(pady=10)
@@ -372,10 +313,16 @@ class wavePage(tk.Frame):
         button2.pack(pady=20)
 
 
-class RlinePage(tk.Frame):
-    global x, y
+class Scatter(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        global x, y
+
+        def check_box(self):
+            if self.rline.get() == 0:
+                self.rline.set(1)
+            else:
+                self.rline.set(0)
 
         def button_command(self):
             global x, y
@@ -401,23 +348,22 @@ class RlinePage(tk.Frame):
 
         def button3_command(self):
             global x, y
-            global graph
-            global org_graph
-            global colours
-            global colour_index
-            s.scatter(x, y,colours[colour_index], s=35, marker="P")
-            canvas.draw()
-            Xpoints.config(text="")
-            Ypoints.config(text="")
-            xytemp = []
-            for z in range(0, len(x)):
-                xytemp.append([x[z], y[z]])
-            graph_details.Rline()
-            draw.polynomial(draw, True)
-            x = []
-            y = []
-            popupmesg("Regression Line", "Points: "+"\n          ".join([str(item) for item in xytemp]) +"\n\n"+org_graph)
-            controller.show_frame(PageTwo)
+            if len(x) >= 2 or len(y) >= 2:
+                draw.Scatter()
+                Xpoints.config(text="")
+                Ypoints.config(text="")
+                if self.rline.get() == 1:
+                    xytemp = []
+                    for z in range(0, len(x)):
+                        xytemp.append([x[z], y[z]])
+                    graph_details.Rline()
+                    draw.polynomial(draw, True)
+                    popupmesg("Regression Line", "Points: "+"\n          ".join([str(item) for item in xytemp]) +"\n\n"+org_graph)
+                x = []
+                y = []
+                controller.show_frame(PageTwo)
+            else:
+                popupmesg("!", "Need more points")
 
         def back_command(self):
             global x, y
@@ -426,6 +372,9 @@ class RlinePage(tk.Frame):
             Xpoints.config(text="")
             Ypoints.config(text="")
             controller.show_frame(PageTwo)
+
+        x = []
+        y = []
 
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
@@ -436,6 +385,8 @@ class RlinePage(tk.Frame):
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
         button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
+        self.rline = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Linear squares regreesion line\n(Line of best fit)", variable=self.rline, command=lambda: check_box(self))
 
         Xlabel.grid(row=0,column=0, padx=65, pady=5)
         Ylabel.grid(row=1,column=0, padx=65, pady=5)
@@ -444,6 +395,7 @@ class RlinePage(tk.Frame):
         button1.grid(row=2,column=1, pady=10)
         button2.grid(row=2,column=0, pady=10)
         button3.grid(row=4,column=1, pady=5)
+        tick.grid(row=4,column=0, pady=5)
         Ypoints.grid(row=3,column=1, pady=5)
         Xpoints.grid(row=3,column=0, pady=5)
 
@@ -660,6 +612,81 @@ class draw():
         colour_change()
         canvas.draw()
 
+    def point(X_pointin, Y_pointin):
+        try:
+            X_point = float(X_pointin)
+            Y_point = float(Y_pointin)
+            if X_point > 200 or X_point < -200 or Y_point > 200 or Y_point < -200:
+                raise                   #leave 'try' statement and enter 'except' statement
+            if X_point.is_integer():
+                X_point = int(X_point)
+            if Y_point.is_integer():
+                Y_point = int(Y_point)
+            s.scatter(X_point, Y_point, s=30,label="("+str(X_point)+","+str(Y_point)+")")
+            s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+            colour_change()
+            canvas.draw()
+            return True
+        except:
+           popupmesg(" ! ","Can't take that!")
+           return False
+
+    def Scatter():
+        global x, y
+        global colours
+        global colour_index
+        s.scatter(x, y, s=35, marker="P")
+        colour_change()
+        canvas.draw()
+
+    def wave(type, m):
+        global limit
+        global x, y
+        global colours
+        global colour_index
+        x = []
+        y = []
+        X = -limit
+        Y = 0
+        step = 0.01
+        if type == "Sine":                
+            while X < limit:
+                y.append(m*(math.sin((X)*(math.pi/180))))
+                x.append(X)
+                X += step
+
+        elif type == "Cosine":
+            while X < limit:
+                y.append(m*(math.cos((X)*(math.pi/180))))
+                x.append(X)
+                X += step
+        elif type == "Tangent":
+            while X < limit:
+                Y = m*(math.tan((X)*(math.pi/180)))
+                if Y < limit and Y > -limit:
+                    y.append(Y)
+                    x.append(X)
+                elif x and y:
+                    s.plot(x,y,colours[colour_index])
+                    x = []
+                    y = []
+                X += step
+            if x and y:
+                s.plot(x,y,colours[colour_index], label="Tangent")
+                s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+                canvas.draw()
+            s.plot([90,90], [limit, -limit],"black",linestyle='dashed')
+            s.plot([-90,-90],[limit, -limit],"black",linestyle='dashed')
+            canvas.draw()
+            colour_change()
+            return
+        else:
+            return
+        s.plot(x,y, colours[colour_index], label=type)
+        s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+        colour_change()
+        canvas.draw()
+
 class graph_details():
     def details():
         global graph
@@ -742,8 +769,8 @@ class graph_details():
         else:
             d = int(d)
  
-        print("a =",a, " b =",b, " c =", c, " d =",d)
-        print(graph_type)
+        #print("a =",a, " b =",b, " c =", c, " d =",d)
+        #print(graph_type)
         if graph_type == "linear":
             graph_details.linear(c, d)
         elif graph_type == "quadratic":
@@ -919,9 +946,9 @@ class graph_details():
         Xpoints = x
         Ypoints = y
         for z in range(0,len(Xpoints)):
-            X += Xpoints[z]                                                                         #sums
+            X += Xpoints[z]                                   #sums
             Y += Ypoints[z]
-        X = X / len(Xpoints)                                                                        #avgs
+        X = X / len(Xpoints)                                  #avgs
         Y = Y / len(Ypoints)
         for p in range(0,len(Xpoints)):
             Sxy += (Xpoints[p]-X)*(Ypoints[p]-Y)
