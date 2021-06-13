@@ -83,13 +83,13 @@ class main(tk.Tk):                                                          #inh
         filemenu.add_separator()
         filemenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
         filemenu.add_command(label="Exit", command=quit)
-        menubar.add_cascade(label="Commands", menu=filemenu)
+        menubar.add_cascade(label="Controls", menu=filemenu)
 
         tk.Tk.config(self, menu=menubar)
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -103,11 +103,19 @@ class main(tk.Tk):                                                          #inh
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+
+        def Real():
+            clear_axis()
+            controller.show_frame(PageTwo)
+        def Complex():
+            clear_axis()
+            controller.show_frame(ComplexPage2)
+
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
-        button2 = ttk.Button(self, text="Graph", command=lambda: controller.show_frame(PageTwo))                 #lambda allows you to pass things into function
+        button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
         button2.pack(pady=10)
-        button3 = ttk.Button(self, text="Complex", command=lambda: controller.show_frame(StartPage))                 #lambda allows you to pass things into function
+        button3 = ttk.Button(self, text="Argand Digaram", command=Complex)                 #lambda allows you to pass things into function
         button3.pack(pady=10)
         button1 = ttk.Button(self, text="Help", command=lambda: controller.show_frame(PageOne))                 #lambda allows you to pass things into function
         button1.pack(pady=20)
@@ -120,17 +128,14 @@ class PageOne(tk.Frame):
         label.pack(padx = 10, pady=10)
         label2 = ttk.Label(self, text="This page is where you can find help \n Good Luck!", font=("Verdana", 8))
         label2.pack(padx = 10, pady=20)
-        button1 = ttk.Button(self, text="Home", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
-        button1.pack(pady = 20)
+        button1 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
+        button1.pack(pady = 30)
 
 class PageTwo(tk.Frame):
     def __init__(self, parent, controller):
-        global canvas
-        global s
-        global roots
-
         tk.Frame.__init__(self, parent)
-        label = ttk.Label(self, text="Graph Controls:", font=("Verdana", 12))
+        clear_axis()
+        label = ttk.Label(self, text="Graph Controls", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
         
         point_button = ttk.Button(self, text="Point", command=lambda: controller.show_frame(PointPage))
@@ -262,7 +267,7 @@ class PointPage(tk.Frame):
                 X_pointin.delete(0, tk.END)
                 Y_pointin.delete(0, tk.END)  
                 controller.show_frame(PageTwo)
-                            
+
 
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
@@ -312,7 +317,6 @@ class wavePage(tk.Frame):
         tan_button.pack(pady=10)
         tick.pack(pady=10)
         button2.pack(pady=20)
-
 
 class Scatter(tk.Frame):
     def __init__(self, parent, controller):
@@ -399,6 +403,32 @@ class Scatter(tk.Frame):
         tick.grid(row=4,column=0, pady=5)
         Ypoints.grid(row=3,column=1, pady=5)
         Xpoints.grid(row=3,column=0, pady=5)
+
+
+class ComplexPage2(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        clear_axis()
+        label = ttk.Label(self, text="Argand Diagram Controls", font=("Verdana", 12))
+        label.pack(pady=10, padx=10)
+
+        point_button = ttk.Button(self, text="Compelx number", command=lambda: controller.show_frame(ComplexPage2))
+        point_button.pack(pady=5)
+        circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexPage2))
+        circle_button.pack(pady=5)
+        HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(ComplexPage2))      
+        HalfLine_button.pack(pady=5)
+        bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(ComplexPage2))      
+        bisector_button.pack(pady=5)
+        MBset_button= ttk.Button(self, text="Mandelbrot Set", command=lambda: controller.show_frame(ComplexPage2))      
+        MBset_button.pack(pady=5)
+        Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))
+        Home_button.pack(pady=25)
+
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
+        canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
 
 
 class checkVars():
