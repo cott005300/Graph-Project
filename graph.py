@@ -437,35 +437,46 @@ class complexPointPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        def check_box(self):
-            if self.Details.get() == 0:
-                self.Details.set(1)
-            else:
-                self.Details.set(0)
+        def check_box(self, which):
+            if which == 1:
+                if self.Details.get() == 0:
+                    self.Details.set(1)
+                else:
+                    self.Details.set(0)
+            elif which == 2: 
+                if self.Vector.get() == 0:
+                    self.Vector.set(1)
+                else:
+                    self.Vector.set(0)
 
         def button_command(self, X_pointin, Y_pointin):
             try:
                 x = float(X_pointin.get())
                 y = float(Y_pointin.get())
             except:
-                pass
+                print("Bad")
             if self.Details.get() == 1:
                 pi = math.pi
                 modulas = math.sqrt((x**2) + (y**2))
                 if str(x)[0] == "-" and str(y)[0] == "-":                    #finds which quadrant of 'argand diagram' the complex number is in
-                    argument = -(pi-math.atan(y/x))
+                    argument = -(pi-math.atan(abs(y)/abs(x)))
                 elif str(x)[0] == "-" and str(y)[0] != "-":
-                    argument = pi-math.atan(y/x)
+                    argument = pi-math.atan(abs(y)/abs(x))
                 elif str(x)[0] != "-" and str(y)[0] == "-":
-                    argument = -math.atan(y/x) 
+                    argument = -math.atan(abs(y)/abs(x)) 
                 elif str(x)[0] != "-" and str(y)[0]!= "-":
-                    argument = math.atan(y/x)
+                    argument = math.atan(abs(y)/abs(x))
                 else:
                     argument = None
                 popupmesg("z = "+str(x)+" + "+str(y)+"i", "Modulas = "+str(modulas)+"\n\nArgument (Degrees) = "+str((argument/pi)*180)+"\nArgument (Radians) = "+str(argument)+"\n\nz = "+str(round(modulas, 1))+"(cos"+str(round(argument, 2))+" + isin"+str(round(argument, 2))+")")
-            if draw.point(X_pointin.get(), Y_pointin.get()):  
+            if draw.point(X_pointin.get(), Y_pointin.get()):
+                if self.Vector.get() == 1:
+                    x = [float(X_pointin.get()), 0]
+                    y = [float(Y_pointin.get()), 0] 
+                    s.plot(x, y, colours[colour_index-1],linestyle='dashed')
+                    canvas.draw()
                 X_pointin.delete(0, tk.END)
-                Y_pointin.delete(0, tk.END)  
+                Y_pointin.delete(0, tk.END)
                 controller.show_frame(ComplexPage2)
 
         X_pointin = ttk.Entry(self, width="10")
@@ -473,15 +484,18 @@ class complexPointPage(tk.Frame):
         Xlabel = ttk.Label(self, text="Real       =", font=("Verdana", 9))
         Ylabel = ttk.Label(self, text="Imaginary =", font=("Verdana", 9))
         self.Details = tk.IntVar()
-        tick = tk.Checkbutton(self, text="Show details", variable=self.Details, command=lambda: check_box(self))
+        tick = tk.Checkbutton(self, text="Show details", variable=self.Details, command=lambda: check_box(self,1))
+        self.Vector = tk.IntVar()
+        tick2 = tk.Checkbutton(self, text="Draw vector", variable=self.Vector, command=lambda: check_box(self,2))
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self, X_pointin, Y_pointin))
-        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
 
         Xlabel.grid(row=0,column=0, padx=65, pady=5)
         Ylabel.grid(row=1,column=0, padx=65, pady=5)
         X_pointin.grid(row=0,column=1, padx=5, pady=5)
         Y_pointin.grid(row=1,column=1, padx=5, pady=5)
         tick.grid(row=2, column=1, pady=12)
+        tick2.grid(row=2, column=0, pady=12)
         button1.grid(row=3,column=1)
         button2.grid(row=3,column=0)
 
@@ -582,8 +596,6 @@ class checkVars():
 class draw():
     def polynomial(self, dashed):
         global graph #a,b,c,d
-        global canvas
-        global colour_index
         global limit
         global roots
         global org_graph
@@ -637,7 +649,7 @@ class draw():
         else:
             s.plot(x,y, colours[colour_index], label=org_graph)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-        colour_change()
+        #colour_change()
         canvas.draw()
         return True
 
@@ -695,8 +707,8 @@ class draw():
 
         s.plot(x,y, colours[colour_index], label=lble)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-        colour_change()
         canvas.draw()
+        colour_change()
 
     def point(X_pointin, Y_pointin):
         try:
@@ -714,10 +726,10 @@ class draw():
                 X_point = int(X_point)
             if Y_point.is_integer():
                 Y_point = int(Y_point)
-            s.scatter(X_point, Y_point, s=30,label="("+str(X_point)+","+str(Y_point)+")")
+            s.scatter(X_point, Y_point, c=colours[colour_index], s=30,label="("+str(X_point)+","+str(Y_point)+")")
             s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-            colour_change()
             canvas.draw()
+            colour_change()
             return True
         except:
            popupmesg(" ! ","Can't take that!")
@@ -725,17 +737,13 @@ class draw():
 
     def Scatter():
         global x, y
-        global colours
-        global colour_index
         s.scatter(x, y, s=35, marker="P")
-        colour_change()
+        #colour_change()
         canvas.draw()
 
     def wave(type, m):
         global limit
         global x, y
-        global colours
-        global colour_index
         x = []
         y = []
         X = -limit
@@ -769,15 +777,15 @@ class draw():
                 canvas.draw()
             s.plot([90,90], [limit, -limit],"black",linestyle='dashed')
             s.plot([-90,-90],[limit, -limit],"black",linestyle='dashed')
-            canvas.draw()
             colour_change()
+            canvas.draw()
             return
         else:
             return
         s.plot(x,y, colours[colour_index], label=type)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-        colour_change()
         canvas.draw()
+        colour_change()
 
 class graph_details():
     def details():
