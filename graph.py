@@ -89,7 +89,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -233,7 +233,7 @@ class circlePage(tk.Frame):
         def button_command():
             Bool, r, cx, cy =  checkVars.circle(checkVars, rIn, cxIn, cyIn)
             if Bool == True:
-                draw.circle(draw, r, -cx, -cy)
+                draw.circle(draw, r, -cx, -cy, "cartesian")
                 controller.show_frame(PageTwo)
 
         #label = ttk.Label(self, text="Circle", font=("Verdana", 10))
@@ -417,7 +417,7 @@ class ComplexPage2(tk.Frame):
 
         point_button = ttk.Button(self, text="Compelx number", command=lambda: controller.show_frame(complexPointPage))
         point_button.pack(pady=5)
-        circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexPage2))
+        circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexCiclePage))
         circle_button.pack(pady=5)
         HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(ComplexPage2))      
         HalfLine_button.pack(pady=5)
@@ -457,7 +457,7 @@ class complexPointPage(tk.Frame):
                 print("Bad")
             if self.Details.get() == 1:
                 pi = math.pi
-                modulas = math.sqrt((x**2) + (y**2))
+                modulus = math.sqrt((x**2) + (y**2))
                 if str(x)[0] == "-" and str(y)[0] == "-":                    #finds which quadrant of 'argand diagram' the complex number is in
                     argument = -(pi-math.atan(abs(y)/abs(x)))
                 elif str(x)[0] == "-" and str(y)[0] != "-":
@@ -468,7 +468,7 @@ class complexPointPage(tk.Frame):
                     argument = math.atan(abs(y)/abs(x))
                 else:
                     argument = None
-                popupmesg("z = "+str(x)+" + "+str(y)+"i", "Modulas = "+str(modulas)+"\n\nArgument (Degrees) = "+str((argument/pi)*180)+"\nArgument (Radians) = "+str(argument)+"\n\nz = "+str(round(modulas, 1))+"(cos"+str(round(argument, 2))+" + isin"+str(round(argument, 2))+")")
+                popupmesg("z = "+str(x)+" + "+str(y)+"i", "Modulus = "+str(modulus)+"\n\nArgument (Degrees) = "+str((argument/pi)*180)+"\nArgument (Radians) = "+str(argument)+"\n\nz = "+str(round(modulus, 1))+"(cos"+str(round(argument, 2))+" + isin"+str(round(argument, 2))+")")
             if draw.point(X_pointin.get(), Y_pointin.get()):
                 if self.Vector.get() == 1:
                     x = [float(X_pointin.get()), 0]
@@ -498,6 +498,41 @@ class complexPointPage(tk.Frame):
         tick2.grid(row=2, column=0, pady=12)
         button1.grid(row=3,column=1)
         button2.grid(row=3,column=0)
+
+class ComplexCiclePage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def button_command():
+            Bool, r, a, b =  checkVars.circle(checkVars, rIn, aIn, bIn)
+            if Bool == True:
+                draw.circle(draw, r, -a, -b, "complex")
+                controller.show_frame(ComplexPage2)
+
+        label = ttk.Label(self, text="|z - (a + bi)| = r", font=("Verdana", 10))
+
+        rIn = ttk.Entry(self, width="10")
+        aIn = ttk.Entry(self, width="10")
+        bIn = ttk.Entry(self, width="10")
+
+        rlabel = ttk.Label(self, text="r      =", font=("Verdana", 9))
+        alabel = ttk.Label(self, text="a      =", font=("Verdana", 9))
+        blabel = ttk.Label(self, text="b      =", font=("Verdana", 9))
+        button1 = ttk.Button(self, text="Enter", command=button_command)
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
+
+        label.grid(row=0,column=0)
+        rlabel.grid(row=1,column=0, padx=65, pady=0)
+        alabel.grid(row=2,column=0, padx=65, pady=0)
+        blabel.grid(row=3,column=0, padx=65, pady=0)
+        rIn.grid(row=1,column=1, padx=5, pady=5)
+        aIn.grid(row=2,column=1, padx=5, pady=5)
+        bIn.grid(row=3,column=1, padx=5, pady=5)
+        button1.grid(row=6,column=1, pady=10)
+        button2.grid(row=6,column=0, pady=10)
+
+
+
 
 class checkVars():
     def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
@@ -653,7 +688,7 @@ class draw():
         canvas.draw()
         return True
 
-    def circle(self, r, cx, cy):
+    def circle(self, r, cx, cy, type):
         global canvas
         global colour_index
         global limit
@@ -699,10 +734,13 @@ class draw():
         if cy.is_integer():
             cy = int(cy)
 
-        if cx ==0 and cy == 0:            
-            lble = "x^2 + y^2 = "+str(r)
-        elif cx !=0 or cy != 0:
-            lble = "(x+"+str(cx)+")^2+(y+"+str(cy)+")^2="+str(r) 
+        if type == "complex":
+            lble = "|z - ("+str(cx)+"+"+str(cy)+") = "+str(r)
+        else:    
+            if cx ==0 and cy == 0:            
+                lble = "x^2 + y^2 = "+str(r)
+            elif cx !=0 or cy != 0:
+                lble = "(x+"+str(cx)+")^2+(y+"+str(cy)+")^2="+str(r) 
         org_graph = lble
 
         s.plot(x,y, colours[colour_index], label=lble)
