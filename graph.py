@@ -89,7 +89,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -334,6 +334,10 @@ class Scatter(tk.Frame):
             xIn = X_pointin.get()
             yIn = Y_pointin.get()
             try:
+                if xIn == "":
+                    xIn = 0
+                if yIn == "":
+                    yIn = 0
                 if int(xIn) > 200 or int(xIn) < -200 or int(yIn) > 200 or int(yIn)<-200:
                     raise
                 x.append(float(xIn))
@@ -380,7 +384,6 @@ class Scatter(tk.Frame):
 
         x = []
         y = []
-
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
         Xlabel = ttk.Label(self, text="X         =", font=("Verdana", 9))
@@ -412,7 +415,7 @@ class ComplexPage2(tk.Frame):
         label = ttk.Label(self, text="Argand Diagram Controls", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
 
-        point_button = ttk.Button(self, text="Compelx number", command=lambda: controller.show_frame(ComplexPage2))
+        point_button = ttk.Button(self, text="Compelx number", command=lambda: controller.show_frame(complexPointPage))
         point_button.pack(pady=5)
         circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexPage2))
         circle_button.pack(pady=5)
@@ -430,6 +433,57 @@ class ComplexPage2(tk.Frame):
         canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
         canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
 
+class complexPointPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def check_box(self):
+            if self.Details.get() == 0:
+                self.Details.set(1)
+            else:
+                self.Details.set(0)
+
+        def button_command(self, X_pointin, Y_pointin):
+            try:
+                x = float(X_pointin.get())
+                y = float(Y_pointin.get())
+            except:
+                pass
+            if self.Details.get() == 1:
+                pi = math.pi
+                modulas = math.sqrt((x**2) + (y**2))
+                if str(x)[0] == "-" and str(y)[0] == "-":                    #finds which quadrant of 'argand diagram' the complex number is in
+                    argument = -(pi-math.atan(y/x))
+                elif str(x)[0] == "-" and str(y)[0] != "-":
+                    argument = pi-math.atan(y/x)
+                elif str(x)[0] != "-" and str(y)[0] == "-":
+                    argument = -math.atan(y/x) 
+                elif str(x)[0] != "-" and str(y)[0]!= "-":
+                    argument = math.atan(y/x)
+                else:
+                    argument = None
+                popupmesg("z = "+str(x)+" + "+str(y)+"i", "Modulas = "+str(modulas)+"\n\nArgument (Degrees) = "+str((argument/pi)*180)+"\nArgument (Radians) = "+str(argument)+"\n\nz = "+str(round(modulas, 1))+"(cos"+str(round(argument, 2))+" + isin"+str(round(argument, 2))+")")
+            if draw.point(X_pointin.get(), Y_pointin.get()):  
+                X_pointin.delete(0, tk.END)
+                Y_pointin.delete(0, tk.END)  
+                controller.show_frame(ComplexPage2)
+
+        X_pointin = ttk.Entry(self, width="10")
+        Y_pointin = ttk.Entry(self, width="10")
+        Xlabel = ttk.Label(self, text="Real       =", font=("Verdana", 9))
+        Ylabel = ttk.Label(self, text="Imaginary =", font=("Verdana", 9))
+        self.Details = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Show details", variable=self.Details, command=lambda: check_box(self))
+        button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self, X_pointin, Y_pointin))
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
+
+        Xlabel.grid(row=0,column=0, padx=65, pady=5)
+        Ylabel.grid(row=1,column=0, padx=65, pady=5)
+        X_pointin.grid(row=0,column=1, padx=5, pady=5)
+        Y_pointin.grid(row=1,column=1, padx=5, pady=5)
+        tick.grid(row=2, column=1, pady=12)
+        button1.grid(row=3,column=1)
+        button2.grid(row=3,column=0)
 
 class checkVars():
     def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
@@ -646,8 +700,14 @@ class draw():
 
     def point(X_pointin, Y_pointin):
         try:
-            X_point = float(X_pointin)
-            Y_point = float(Y_pointin)
+            X_point = X_pointin
+            Y_point = Y_pointin
+            if X_point == "":
+                X_point = 0
+            if Y_point == "":
+                Y_point = 0
+            X_point = float(X_point)
+            Y_point = float(Y_point)
             if X_point > 200 or X_point < -200 or Y_point > 200 or Y_point < -200:
                 raise                   #leave 'try' statement and enter 'except' statement
             if X_point.is_integer():
