@@ -89,7 +89,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -331,6 +331,7 @@ class Scatter(tk.Frame):
 
         def button_command(self):
             global x, y
+            global limit
             xIn = X_pointin.get()
             yIn = Y_pointin.get()
             try:
@@ -338,7 +339,7 @@ class Scatter(tk.Frame):
                     xIn = 0
                 if yIn == "":
                     yIn = 0
-                if int(xIn) > 200 or int(xIn) < -200 or int(yIn) > 200 or int(yIn)<-200:
+                if int(xIn) > limit or int(xIn) < -limit or int(yIn) > limit or int(yIn)<-limit:
                     raise
                 x.append(float(xIn))
                 y.append(float(yIn))
@@ -419,7 +420,7 @@ class ComplexPage2(tk.Frame):
         point_button.pack(pady=5)
         circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexCiclePage))
         circle_button.pack(pady=5)
-        HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(ComplexPage2))      
+        HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(half_line_Page))      
         HalfLine_button.pack(pady=5)
         bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(ComplexPage2))      
         bisector_button.pack(pady=5)
@@ -531,7 +532,93 @@ class ComplexCiclePage(tk.Frame):
         button1.grid(row=6,column=1, pady=10)
         button2.grid(row=6,column=0, pady=10)
 
+class half_line_Page(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
 
+        def check_box(self):
+            if self.Unit.get() == 0:
+                self.Unit.set(1)
+            else:
+                self.Unit.set(0)
+
+        def button_command():
+            global limit
+            global x, y
+            x = []
+            y = []
+            neg = False     #negative
+            try:
+                if aIn.get() == "":
+                    a = 0
+                if bIn.get() == "":
+                    b = 0
+                else:
+                    a = float(aIn.get())
+                    b = float(bIn.get())
+                t = float(thetaIn.get())
+                if a > limit or a < -limit or b > limit or b<-limit:
+                    raise
+                if self.Unit.get() == 0:     #degrees
+                    tlablel = str(t)+"°"
+                    t = (t/180) *math.pi
+                else:
+                    tlablel = str(t)+"rad"
+                if t > (1.5*math.pi) or (t < 0 and t> -(math.pi*0.5)):
+                    neg = True
+                    t = -((2*math.pi) - t)
+                elif t > math.pi or (t < 0 and t > -(math.pi)):
+                    neg = True
+                    t = t - math.pi
+                elif t > (0.5*math.pi) or (t < 0 and t > -(0.5*math.pi)):
+                    neg = False
+                    t = -(math.pi - t)
+                m = math.tan(t)     #gradient of line
+                c = ((-m)*a) + b    #y intercept
+                for X in range(-limit,limit):
+                    Y = ((m)*(X)) + c
+                    if neg == False and not(Y > limit) and  not(Y < -limit) and not(Y <= b):   
+                        x.append(X)
+                        y.append(Y)
+                    elif neg == True and not(Y > limit) and  not(Y < -limit) and not(Y >= b):
+                        x.append(X)
+                        y.append(Y)
+                s.plot([-limit, limit], [b,b], "black",linestyle="dashed")
+                s.plot(x, y, colours[colour_index],label= "arg(z-("+str(-a)+" + "+str(-b)+"i))="+tlablel)
+                s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
+                canvas.draw()
+                colour_change()
+                aIn.delete(0, tk.END)
+                bIn.delete(0, tk.END)
+                thetaIn.delete(0, tk.END)
+                controller.show_frame(ComplexPage2)
+            except:
+                popupmesg("!","I can't take that")
+
+        label = ttk.Label(self, text="arg(z - (a + bi)) =  θ", font=("Verdana", 10))
+
+        thetaIn = ttk.Entry(self, width="10")
+        aIn = ttk.Entry(self, width="10")
+        bIn = ttk.Entry(self, width="10")
+
+        thetalabel = ttk.Label(self, text="θ      =", font=("Verdana", 9))
+        alabel = ttk.Label(self, text="a      =", font=("Verdana", 9))
+        blabel = ttk.Label(self, text="b      =", font=("Verdana", 9))
+        button1 = ttk.Button(self, text="Enter", command=button_command)
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
+        self.Unit = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Radians", variable=self.Unit, command=lambda: check_box(self))
+
+        label.grid(row=0,column=0)
+        thetalabel.grid(row=1,column=0, padx=65, pady=0)
+        tick.grid(row=1, column = 3, padx= 10)
+        alabel.grid(row=2,column=0, padx=65, pady=5)
+        blabel.grid(row=3,column=0, padx=65, pady=5)
+        thetaIn.grid(row=1,column=1, padx=5, pady=5)
+        aIn.grid(row=2,column=1, padx=5, pady=5)
+        bIn.grid(row=3,column=1, padx=5, pady=5)
+        button1.grid(row=6,column=1, pady=10)
+        button2.grid(row=6,column=0, pady=10)
 
 
 class checkVars():
