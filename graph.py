@@ -4,6 +4,8 @@ import math
 import matplotlib
 import sys
 import os
+
+from numpy import select
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -625,11 +627,22 @@ class MBsetPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        def check_box(self):
-            if self.axes.get() == 0:
-                self.axes.set(1)
-            else:
-                self.axes.set(0)
+        def check_box(self, which):
+            if which == "axes":
+                if self.axes.get() == 0:
+                    self.axes.set(1)
+                else:
+                    self.axes.set(0)
+            elif which == "red":
+                if self.red.get() == 0:
+                    self.red.set(1)
+                else:
+                    self.red.set(0)
+            elif which == "blue":
+                if self.blue.get() == 0:
+                    self.blue.set(1)
+                else:
+                    self.blue.set(0)
         
         def slider_changed(self):
             current_value_label.configure(text=str(round(slider.get(),1)))
@@ -637,6 +650,20 @@ class MBsetPage(tk.Frame):
         def button_command(self):
             global x, y
             global limit
+            if self.red.get() == 0 and self.blue.get() == 0:
+                popupmesg("!","Please select a colour")
+                return
+            if self.red.get() == 1 and self.blue.get() == 1:
+                popupmesg("!","Please select 1 colour")
+                return
+
+            if self.red.get() == 1:
+                scheme = "red"
+                colour = "maroon"
+            elif self.blue.get() == 1:
+                scheme = "blue"
+                colour = "midnightblue"
+
             res = round(slider.get(),1)
             try:
                 if res == "":
@@ -647,8 +674,8 @@ class MBsetPage(tk.Frame):
                 popupmesg("!", "I can't take that")
                 return
 
-            MB_colours = [[0,"darkred"],[1,"firebrick"],[2,"red"],[3,"orangered"],[4,"darkorange"],[5,"orange"],[6,"gold"],[7,"khaki"],[8,"darkkhaki"],[9,"olive"],[10,"olivedrab"],[11,"forestgreen"],[12,"green"],[13,"darkgreen"],[14,"seagreen"],[15,"mediumseagreen"],[28,"cadetblue"],[30,"steelblue"],[32,"dodgerblue"],[35,"blue"],[45,"darkblue"],[80,"darkslateblue"]]
-            colour = "maroon"
+            MB_colours_red = [[80,"indigo"],[45,"darkblue"],[35,"blue"],[32,"dodgerblue"],[30,"steelblue"],[28,"cadetblue"],[25,"mediumaquamarine"],[15,"mediumseagreen"],[14,"seagreen"],[13,"darkgreen"],[12,"green"],[11,"forestgreen"],[10,"olivedrab"],[9,"olive"],[8,"darkkhaki"],[7,"khaki"],[6,"gold"],[5,"orange"],[4,"darkorange"],[3,"orangered"],[2,"red"],[1,"firebrick"],[0,"darkred"]  ]
+            MB_colours_blue = [ [50,"aquamarine"],[40,"turquoise"],[30,"mediumturquoise"],[25,"darkturquoise"],[18,"deepskyblue"],[15,"dodgerblue"],[10,"cornflowerblue"],[7,"royalblue"],[4,"blue"],[3,"mediumblue"],[2,"darkblue"],[1,"navy"],[0,"midnightblue"] ]
             colour_before = ""
             y = 0
             X = -limit - res
@@ -668,19 +695,26 @@ class MBsetPage(tk.Frame):
                         if (ans.real**2) + (ans.imag**2) >= 4:                                      #checks weather stable or not. As anything that leaves a circle with radius 2 is unstable
                             stable = False
                             found_colour = False
-                            for z in range(0,len(MB_colours)):
-                                if MB_colours[len(MB_colours)-1-z][0] < i:
-                                    colour = MB_colours[len(MB_colours)-1-z][1]
-                                    found_colour = True
-                                    break
-                            if found_colour == False:
-                                colour ="maroon"
+                            if scheme == "red":
+                                for z in range(0,len(MB_colours_red)):
+                                    if MB_colours_red[z][0] < i:
+                                        colour = MB_colours_red[z][1]
+                                        found_colour = True
+                                        break
+                                if found_colour == False:
+                                    colour ="maroon"
+                            elif scheme == "blue":
+                                for z in range(0,len(MB_colours_blue)):
+                                    if MB_colours_blue[z][0] < i:
+                                        colour = MB_colours_blue[z][1]
+                                        break
                             break
                         else:
                             stable = True
                     if stable == True:
                         colour = "black"
                     if colour_before != colour:                                         #only draw new line when colour has changed
+                        #print(colour_before)
                         s.plot([X-res, X],[Yprev-res,Y], colour_before, linewidth=1.1*res)
                         colour_before = colour
                         Yprev = Y
@@ -696,6 +730,9 @@ class MBsetPage(tk.Frame):
             progress['value'] = 0 
             self.update_idletasks()
             slider.set(3)
+            #self.axis.set(0)
+            #self.red.set(0)
+            #self.blue.set(0)
             controller.show_frame(ComplexPage2)
 
         label = ttk.Label(self, text="Resolution:", font=("Verdana", 9))
@@ -703,7 +740,11 @@ class MBsetPage(tk.Frame):
         slider = ttk.Scale(self, from_=0.1, to=5,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=3)
         current_value_label = ttk.Label(self, text='3')
         self.axes = tk.IntVar()
-        tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self))
+        self.red = tk.IntVar()
+        self.blue = tk.IntVar()
+        tick_red = tk.Checkbutton(self, text="Red", selectcolor="red", variable=self.red, command=lambda: check_box(self, "red"))
+        tick_blue = tk.Checkbutton(self, text="Blue", selectcolor="royalblue", variable=self.blue, command=lambda: check_box(self, "blue"))
+        tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self,"axes"))
         button1 = ttk.Button(self, text="Draw", command=lambda: button_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
         progress = ttk.Progressbar(self, orient ='horizontal',length = 100, mode = 'determinate')
@@ -711,10 +752,12 @@ class MBsetPage(tk.Frame):
         label.grid(row=0, column=0, padx = 55, pady = 15)
         slider.grid(row=0, column=1, pady=8)
         current_value_label.grid(row=0, column=2, padx=10)
-        tick.grid(row=1,column=1, pady=10)
-        button1.grid(row=2,column=1, pady=8)
-        button2.grid(row=2,column=0, pady=8)
-        progress.grid(row=3, column=1,pady=8)
+        tick_red.grid(row=1,column=0, pady=10)
+        tick_blue.grid(row=1,column=1, pady=10)
+        tick.grid(row=2,column=1, pady=10)
+        button1.grid(row=3,column=1, pady=8)
+        button2.grid(row=3,column=0, pady=8)
+        progress.grid(row=4, column=1,pady=8)
 
 
 class checkVars():
