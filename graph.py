@@ -655,6 +655,8 @@ class MBsetPage(tk.Frame):
             X = -limit - res
             Yprev = 0
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
+                #percentage_label.config(text=str(round( ( ((X+200)/400)*100),2) ))
+                print( round( ( ((X+200)/400)*100),2)  )
                 X += res
                 Y = -limit
                 while Y < limit:                                                                   #y loop starting at -400 each time
@@ -702,6 +704,7 @@ class MBsetPage(tk.Frame):
         tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self))
         button1 = ttk.Button(self, text="Draw", command=button_command)
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
+        percentage_label = ttk.Label(self, text='0%')
 
         label.grid(row=0, column=0, padx = 55, pady = 15)
         slider.grid(row=0, column=1, pady=8)
@@ -709,6 +712,7 @@ class MBsetPage(tk.Frame):
         tick.grid(row=2,column=1, pady=12)
         button1.grid(row=3,column=1, pady=20)
         button2.grid(row=3,column=0, pady=20)
+        percentage_label.grid(row=4, column=1)
 
 
 class checkVars():
@@ -860,8 +864,8 @@ class draw():
         else:
             s.plot(x,y, colours[colour_index], label=org_graph)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
-        #colour_change()
         canvas.draw()
+        colour_change()
         return True
 
     def circle(self, r, cx, cy, type):
@@ -952,7 +956,6 @@ class draw():
     def Scatter():
         global x, y
         s.scatter(x, y, s=35, marker="P")
-        #colour_change()
         canvas.draw()
 
     def wave(type, m):
