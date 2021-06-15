@@ -625,30 +625,34 @@ class MBsetPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        def check_box(self):
+            if self.axes.get() == 0:
+                self.axes.set(1)
+            else:
+                self.axes.set(0)
+        
+        def slider_changed(self):
+            current_value_label.configure(text=str(round(slider.get(),1)))
+
         def button_command():
             global x, y
             global limit
-            res = resIn.get()
+            res = round(slider.get(),1)
             try:
                 if res == "":
                     res = 0
                 res = float(res)
-                resIn.delete(0, tk.END)
+                slider.set(3)
                 s.clear()
             except:
                 popupmesg("!", "I can't take that")
                 return
 
             MB_colours = [[0,"darkred"],[1,"firebrick"],[2,"red"],[3,"orangered"],[4,"darkorange"],[5,"orange"],[6,"gold"],[7,"khaki"],[8,"darkkhaki"],[9,"olive"],[10,"olivedrab"],[11,"forestgreen"],[12,"green"],[13,"darkgreen"],[14,"seagreen"],[15,"mediumseagreen"],[28,"cadetblue"],[30,"steelblue"],[32,"dodgerblue"],[35,"blue"],[45,"darkblue"],[80,"darkslateblue"]]
-            colour = "red3"
+            colour = "maroon"
             colour_before = ""
             y = 0
-            stable = False
-            coloured = False
-            found_colour = False
-            ans = 0
-            X = -limit
-            X -= res                                                                                    #so that x starts at 0
+            X = -limit - res
             Yprev = 0
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
                 X += res
@@ -682,21 +686,29 @@ class MBsetPage(tk.Frame):
                     if Y >= limit:                                                                    #stops overlaping colours when y resets to -400
                         s.plot([X, X],[Yprev,limit], colour_before, linewidth=1.1*res)
                         Yprev = -limit
-                        #colour_before = ""
 
             canvas.draw()
+            if self.axes.get() == 1:
+                s.plot([-limit,limit],[0,0], "White", linestyle ="dashed")
+                s.plot([0,0],[-limit,limit], "White",linestyle="dashed")
+                canvas.draw()
             controller.show_frame(ComplexPage2)
 
-
         label = ttk.Label(self, text="Resolution:", font=("Verdana", 9))
-        resIn = ttk.Entry(self, width="10")
+        self.current_value = tk.IntVar()
+        slider = ttk.Scale(self, from_=0.1, to=5,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=3)
+        current_value_label = ttk.Label(self, text='3')
+        self.axes = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self))
         button1 = ttk.Button(self, text="Draw", command=button_command)
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
 
-        label.grid(row=0, column=0, padx = 55, pady = 20)
-        resIn.grid(row=0,column=1, padx=30, pady=20)
-        button1.grid(row=1,column=1, pady=20)
-        button2.grid(row=1,column=0, pady=20)
+        label.grid(row=0, column=0, padx = 55, pady = 15)
+        slider.grid(row=0, column=1, pady=8)
+        current_value_label.grid(row=1, column=1)
+        tick.grid(row=2,column=1, pady=12)
+        button1.grid(row=3,column=1, pady=20)
+        button2.grid(row=3,column=0, pady=20)
 
 
 class checkVars():
