@@ -89,7 +89,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -339,7 +339,7 @@ class Scatter(tk.Frame):
                     xIn = 0
                 if yIn == "":
                     yIn = 0
-                if int(xIn) > limit or int(xIn) < -limit or int(yIn) > limit or int(yIn)<-limit:
+                if float(xIn) > limit or float(xIn) < -limit or float(yIn) > limit or float(yIn)<-limit:
                     raise
                 x.append(float(xIn))
                 y.append(float(yIn))
@@ -424,7 +424,7 @@ class ComplexPage2(tk.Frame):
         HalfLine_button.pack(pady=5)
         bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(ComplexPage2))      
         bisector_button.pack(pady=5)
-        MBset_button= ttk.Button(self, text="Mandelbrot Set", command=lambda: controller.show_frame(ComplexPage2))      
+        MBset_button= ttk.Button(self, text="Mandelbrot Set", command=lambda: controller.show_frame(MBsetPage))      
         MBset_button.pack(pady=5)
         Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))
         Home_button.pack(pady=25)
@@ -621,6 +621,84 @@ class half_line_Page(tk.Frame):
         button2.grid(row=6,column=0, pady=10)
 
 
+class MBsetPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def button_command():
+            global x, y
+            global limit
+            res = resIn.get()
+            try:
+                if res == "":
+                    res = 0
+                res = float(res)
+                resIn.delete(0, tk.END)
+                s.clear()
+            except:
+                popupmesg("!", "I can't take that")
+                return
+
+            MB_colours = [[0,"darkred"],[1,"firebrick"],[2,"red"],[3,"orangered"],[4,"darkorange"],[5,"orange"],[6,"gold"],[7,"khaki"],[8,"darkkhaki"],[9,"olive"],[10,"olivedrab"],[11,"forestgreen"],[12,"green"],[13,"darkgreen"],[14,"seagreen"],[15,"mediumseagreen"],[28,"cadetblue"],[30,"steelblue"],[32,"dodgerblue"],[35,"blue"],[45,"darkblue"],[80,"darkslateblue"]]
+            colour = "red3"
+            colour_before = ""
+            y = 0
+            stable = False
+            coloured = False
+            found_colour = False
+            ans = 0
+            X = -limit
+            X -= res                                                                                    #so that x starts at 0
+            Yprev = 0
+            while X <= (limit - res):                                                                 #x loop starting at -400 each time
+                X += res
+                Y = -limit
+                while Y < limit:                                                                   #y loop starting at -400 each time
+                    Y += res
+                    Xscale = X / 100                                                                # /200 for scale- should be between -2 &2  , not -400 & 400
+                    Yscale = Y / 100
+                    ans = complex(0,0)                                                              #reset ans
+                    for i in range(0,100):                                                          #The number of iterations - the more, the more accurate
+                        ans = ( ans**2 + complex(Xscale, Yscale) )                                      
+                        if (ans.real**2) + (ans.imag**2) >= 4:                                      #checks weather stable or not. As anything that leaves a circle with radius 2 is unstable
+                            stable = False
+                            found_colour = False
+                            for z in range(0,len(MB_colours)):
+                                if MB_colours[len(MB_colours)-1-z][0] < i:
+                                    colour = MB_colours[len(MB_colours)-1-z][1]
+                                    found_colour = True
+                                    break
+                            if found_colour == False:
+                                colour ="maroon"
+                            break
+                        else:
+                            stable = True
+                    if stable == True:
+                        colour = "black"
+                    if colour_before != colour:                                         #only draw new line when colour has changed
+                        s.plot([X-res, X],[Yprev-res,Y], colour_before, linewidth=1.1*res)
+                        colour_before = colour
+                        Yprev = Y
+                    if Y >= limit:                                                                    #stops overlaping colours when y resets to -400
+                        s.plot([X, X],[Yprev,limit], colour_before, linewidth=1.1*res)
+                        Yprev = -limit
+                        #colour_before = ""
+
+            canvas.draw()
+            controller.show_frame(ComplexPage2)
+
+
+        label = ttk.Label(self, text="Resolution:", font=("Verdana", 9))
+        resIn = ttk.Entry(self, width="10")
+        button1 = ttk.Button(self, text="Draw", command=button_command)
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
+
+        label.grid(row=0, column=0, padx = 55, pady = 20)
+        resIn.grid(row=0,column=1, padx=30, pady=20)
+        button1.grid(row=1,column=1, pady=20)
+        button2.grid(row=1,column=0, pady=20)
+
+
 class checkVars():
     def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
         global graph #a, b, c, d 
@@ -672,7 +750,6 @@ class checkVars():
             if graph[z] == "-" and graph[z-1] != " ":
                 if not(graph[z-1] == "*" and graph[z-2] == "*"):    #this is for negative powers
                     graph = graph[:z] + " " + graph[z:]
-
         #try:
          #   a = float(a)
           #  b = float(b)
