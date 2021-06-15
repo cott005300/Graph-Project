@@ -634,7 +634,7 @@ class MBsetPage(tk.Frame):
         def slider_changed(self):
             current_value_label.configure(text=str(round(slider.get(),1)))
 
-        def button_command():
+        def button_command(self):
             global x, y
             global limit
             res = round(slider.get(),1)
@@ -642,7 +642,6 @@ class MBsetPage(tk.Frame):
                 if res == "":
                     res = 0
                 res = float(res)
-                slider.set(3)
                 s.clear()
             except:
                 popupmesg("!", "I can't take that")
@@ -655,8 +654,8 @@ class MBsetPage(tk.Frame):
             X = -limit - res
             Yprev = 0
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
-                #percentage_label.config(text=str(round( ( ((X+200)/400)*100),2) ))
-                print( round( ( ((X+200)/400)*100),2)  )
+                progress['value'] = (((X+200)/400)*100)
+                self.update_idletasks()
                 X += res
                 Y = -limit
                 while Y < limit:                                                                   #y loop starting at -400 each time
@@ -694,6 +693,9 @@ class MBsetPage(tk.Frame):
                 s.plot([-limit,limit],[0,0], "White", linestyle ="dashed")
                 s.plot([0,0],[-limit,limit], "White",linestyle="dashed")
                 canvas.draw()
+            progress['value'] = 0 
+            self.update_idletasks()
+            slider.set(3)
             controller.show_frame(ComplexPage2)
 
         label = ttk.Label(self, text="Resolution:", font=("Verdana", 9))
@@ -702,17 +704,17 @@ class MBsetPage(tk.Frame):
         current_value_label = ttk.Label(self, text='3')
         self.axes = tk.IntVar()
         tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self))
-        button1 = ttk.Button(self, text="Draw", command=button_command)
+        button1 = ttk.Button(self, text="Draw", command=lambda: button_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
-        percentage_label = ttk.Label(self, text='0%')
+        progress = ttk.Progressbar(self, orient ='horizontal',length = 100, mode = 'determinate')
 
         label.grid(row=0, column=0, padx = 55, pady = 15)
         slider.grid(row=0, column=1, pady=8)
-        current_value_label.grid(row=1, column=1)
-        tick.grid(row=2,column=1, pady=12)
-        button1.grid(row=3,column=1, pady=20)
-        button2.grid(row=3,column=0, pady=20)
-        percentage_label.grid(row=4, column=1)
+        current_value_label.grid(row=0, column=2, padx=10)
+        tick.grid(row=1,column=1, pady=10)
+        button1.grid(row=2,column=1, pady=8)
+        button2.grid(row=2,column=0, pady=8)
+        progress.grid(row=3, column=1,pady=8)
 
 
 class checkVars():
