@@ -91,7 +91,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page, MBsetPage):
+        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -424,7 +424,7 @@ class ComplexPage2(tk.Frame):
         circle_button.pack(pady=5)
         HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(half_line_Page))      
         HalfLine_button.pack(pady=5)
-        bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(ComplexPage2))      
+        bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(PbisectorPage))      
         bisector_button.pack(pady=5)
         MBset_button= ttk.Button(self, text="Mandelbrot Set", command=lambda: controller.show_frame(MBsetPage))      
         MBset_button.pack(pady=5)
@@ -457,7 +457,7 @@ class complexPointPage(tk.Frame):
                 x = float(X_pointin.get())
                 y = float(Y_pointin.get())
             except:
-                print("Bad")
+                popupmesg("!","Can't plot that")
             if self.Details.get() == 1:
                 pi = math.pi
                 modulus = math.sqrt((x**2) + (y**2))
@@ -621,6 +621,79 @@ class half_line_Page(tk.Frame):
         bIn.grid(row=3,column=1, padx=5, pady=5)
         button1.grid(row=6,column=1, pady=10)
         button2.grid(row=6,column=0, pady=10)
+
+class PbisectorPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def button_command(self):
+            global colour_index
+            global graph
+            global org_graph
+            try:
+                if X_pointin.get() == "":
+                    X_pointin.insert(0,"0")
+                if Y_pointin.get() == "":
+                    Y_pointin.insert(0,"0")
+                if X2_pointin.get() == "":
+                    X2_pointin.insert(0,"0")
+                if Y2_pointin.get() == "":
+                    Y2_pointin.insert(0,"0")
+                X = float(X_pointin.get())
+                Y = float(Y_pointin.get())
+                X2 = float(X2_pointin.get())
+                Y2 = float(Y2_pointin.get())
+                if X>limit or X<-limit or Y>limit or Y<-limit or X2>limit or X2<-limit or Y2>limit or Y2<-limit:
+                    raise
+            except:
+                popupmesg("!","Can't take that")
+                return
+
+            s.scatter([X,X2], [Y,Y2], s=28, marker="x",c=colours[colour_index])
+            #colour_index -= 1
+
+            m = (Y - Y2) / (X - X2)
+            m = -((m)**-1)
+            mdptx = (X+X2)/2
+            mdpty = (Y+Y2)/2
+            graph = "("+str(m)+"*((x)-"+str(mdptx)+"))+"+str(mdpty)
+            org_graph = "y="+str(round(m,2))+"x + "+str(round((-mdptx*m)+mdpty,2))
+            draw.polynomial(draw, False)
+            colour_index -= 1
+            s.plot([X,X2],[Y,Y2],colours[colour_index], linestyle="dashed")
+            canvas.draw()
+            X_pointin.delete(0, tk.END)
+            Y_pointin.delete(0, tk.END)
+            X2_pointin.delete(0, tk.END)
+            Y2_pointin.delete(0, tk.END)
+            colour_change()
+            controller.show_frame(ComplexPage2)
+
+
+        label = ttk.Label(self, text="|z-(a+bi)| = |z-(b+ci)|", font=("Verdana", 9))
+        X_pointin = ttk.Entry(self, width="10")
+        Y_pointin = ttk.Entry(self, width="10")
+        Xlabel = ttk.Label(self, text="a    =", font=("Verdana", 9))
+        Ylabel = ttk.Label(self, text="b    =", font=("Verdana", 9))
+        X2_pointin = ttk.Entry(self, width="10")
+        Y2_pointin = ttk.Entry(self, width="10")
+        X2label = ttk.Label(self, text="c   =", font=("Verdana", 9))
+        Y2label = ttk.Label(self, text="d   =", font=("Verdana", 9))
+        button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
+
+        label.grid(row=0,column=1, pady=10)
+        Xlabel.grid(row=1,column=0, padx=65, pady=5)
+        Ylabel.grid(row=2,column=0, padx=65, pady=5)
+        X_pointin.grid(row=1,column=1, padx=5, pady=5)
+        Y_pointin.grid(row=2,column=1, padx=5, pady=5)
+        ttk.Separator(self, orient='vertical').grid(row=3, column=0, columnspan=1, pady=10)
+        X2label.grid(row=4,column=0, padx=65, pady=5)
+        Y2label.grid(row=5,column=0, padx=65, pady=5)
+        X2_pointin.grid(row=4,column=1, padx=5, pady=5)
+        Y2_pointin.grid(row=5,column=1, padx=5, pady=5)
+        button1.grid(row=6,column=1, pady=25)
+        button2.grid(row=6,column=0, pady=2)
 
 
 class MBsetPage(tk.Frame):
@@ -983,7 +1056,7 @@ class draw():
                 Y_point = 0
             X_point = float(X_point)
             Y_point = float(Y_point)
-            if X_point > 200 or X_point < -200 or Y_point > 200 or Y_point < -200:
+            if X_point > limit or X_point < -limit or Y_point > limit or Y_point < -limit:
                 raise                   #leave 'try' statement and enter 'except' statement
             if X_point.is_integer():
                 X_point = int(X_point)
