@@ -63,14 +63,35 @@ def popupmesg(title, msg):
     return
     #popup.mainloop()
 
-def clear_axis():
+def clear_axis(MBset):
     global colour_index
     global limit
     global l1, l2
     colour_index = 0
     s.clear()
-    l1 = s.plot([-limit,limit],[0,0], "black")
-    l2 = s.plot([0,0],[-limit,limit], "black")
+    if MBset:
+        limit = 2
+        s.axis([-2.1,2.1,-2.1,2.1])
+    else:
+        l1 = s.plot([-limit,limit],[0,0], "black")
+        l2 = s.plot([0,0],[-limit,limit], "black")
+    canvas.draw()
+
+def axis_pos():
+    global limit
+    posinx = simpledialog.askstring("Axes Position", "Type X axes position")
+    if posinx == None:
+            return
+    posiny= simpledialog.askstring("Axes Position", "Type Y axes position")
+    try:
+        posinx = float(posinx)
+        posiny = float(posiny)
+        if posinx > limit or posinx < -limit or posiny > limit or posiny < -limit:
+            raise
+    except:
+        return
+    s.set_ylim([posiny-(1.05*limit), posiny+(1.05*limit)])
+    s.set_xlim([posinx-(1.05*limit), posinx+(1.05*limit)])
     canvas.draw()
 
 class main(tk.Tk):                                                          #inhertit from tk
@@ -82,8 +103,9 @@ class main(tk.Tk):                                                          #inh
        #     global colours, colour_index            
         #    colour_change()
 
-        def axes_size():
+        def axis_size():
             global l1, l2
+            global limit
             limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
             try:
                 limit = float(limitIn)
@@ -109,10 +131,11 @@ class main(tk.Tk):                                                          #inh
         container.grid_columnconfigure(0, weight=1)
         
         menubar = tk.Menu(container)
-        ctrlmenu = tk.Menu(menubar, tearoff=0)
+        ctrlmenu = tk.Menu(menubar, tearoff=1)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
-        ctrlmenu.add_command(label="Axes Size", command= axes_size)
-        ctrlmenu.add_command(label="Reset Graph", command= clear_axis)
+        ctrlmenu.add_command(label="Axes Size", command= axis_size)
+        ctrlmenu.add_command(label="Axes Position", command= axis_pos)
+        ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
         ctrlmenu.add_command(label="Exit", command=quit)
@@ -122,7 +145,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, BarChartPage,ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -138,10 +161,10 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         def Real():
-            clear_axis()
+            clear_axis(False)
             controller.show_frame(PageTwo)
         def Complex():
-            clear_axis()
+            clear_axis(False)
             controller.show_frame(ComplexPage2)
 
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
@@ -154,7 +177,7 @@ class StartPage(tk.Frame):
 class PageTwo(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        clear_axis()
+
         label = ttk.Label(self, text="Graph Controls", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
         
@@ -168,6 +191,8 @@ class PageTwo(tk.Frame):
         wave_button.pack(pady=5)
         Rline_button = ttk.Button(self, text="Scatter graph", command=lambda: controller.show_frame(Scatter))
         Rline_button.pack(pady=5)
+        BarButton = ttk.Button(self, text="Bar Graph", command=lambda: controller.show_frame(BarChartPage))
+        BarButton.pack(pady=5)
         Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
         Home_button.pack(pady=25)
 
@@ -429,10 +454,86 @@ class Scatter(tk.Frame):
         Xpoints.grid(row=3,column=0, pady=5)
 
 
+class BarChartPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        global x, y
+
+        def button_command(self):
+            global x, y
+            global limit
+            yIn = Y_pointin.get()
+
+            try:
+                if yIn == "":
+                    yIn = 0
+                if float(yIn) > limit or float(yIn)<-limit:
+                    raise
+                if x:
+                    x.append(x[-1]+10)
+                else:
+                    x.append(8)
+                y.append(float(yIn))
+            except:
+                popupmesg("!", "I can't take that")
+                return
+            Y_pointin.delete(0, tk.END)
+            ytemp = ""
+            for z in range(0, len(y)):
+                ytemp += str(y[z])+"\n"
+            Ylabel.config(text=str(x[-1]+10)[0]+". Bar Height")
+            Ypoints.config(text="Bar Height\n"+str(ytemp))
+
+        def button3_command(self):
+            global x, y
+            if y:
+                clear_axis(False)
+                s.set_ylim([0, limit])
+                s.set_xlim([0, limit])
+                Ypoints.config(text="")
+                s.bar(x,y,width=8,align="center",color=colours[colour_index])
+                canvas.draw()
+                colour_change()
+                temp = ""
+                for z in range(1, len(y)+1):
+                    temp += "\n"+str(z) + ". "+str(y[z-1])
+                popupmesg("Bar Graph", "Bars:"+temp)
+                x = []
+                y = []
+                Ypoints.config(text="")
+                controller.show_frame(PageTwo)
+            else:
+                popupmesg("!", "Need more bars")
+
+        def back_command(self):
+            global x, y
+            x = []
+            y = []
+            Ypoints.config(text="")
+            controller.show_frame(PageTwo)
+
+        x = []
+        y = []
+        Y_pointin = ttk.Entry(self, width="10")
+        Ylabel = ttk.Label(self, text="1. Bar height =", font=("Verdana", 9))
+        Ypoints = ttk.Label(self, text="", font=("Verdana", 8))
+        button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
+        button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
+        button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
+        self.rline = tk.IntVar()
+
+        Ylabel.grid(row=1,column=0, padx=65, pady=5)
+        Y_pointin.grid(row=1,column=1, padx=5, pady=5)
+        button1.grid(row=2,column=1, pady=10)
+        button2.grid(row=2,column=0, pady=10)
+        button3.grid(row=4,column=1, pady=5)
+        Ypoints.grid(row=3,column=1, pady=5)
+
+
 class ComplexPage2(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        clear_axis()
+
         label = ttk.Label(self, text="Argand Diagram Controls", font=("Verdana", 12))
         label.pack(pady=10, padx=10)
 
@@ -760,12 +861,13 @@ class MBsetPage(tk.Frame):
                 if res == "":
                     res = 0
                 res = float(res)
-                s.clear()
+                res = res/100
+                clear_axis(True)
             except:
                 popupmesg("!", "I can't take that")
                 return
 
-            MB_colours_red = [[80,"indigo"],[45,"darkblue"],[35,"blue"],[32,"dodgerblue"],[30,"steelblue"],[28,"cadetblue"],[25,"mediumaquamarine"],[15,"mediumseagreen"],[14,"seagreen"],[13,"darkgreen"],[12,"green"],[11,"forestgreen"],[10,"olivedrab"],[9,"olive"],[8,"darkkhaki"],[7,"khaki"],[6,"gold"],[5,"orange"],[4,"darkorange"],[3,"orangered"],[2,"red"],[1,"firebrick"],[0,"darkred"]  ]
+            MB_colours_red = [[80,"indigo"],[45,"darkblue"],[35,"blue"],[32,"dodgerblue"],[30,"steelblue"],[28,"cadetblue"],[25,"mediumaquamarine"],[15,"mediumseagreen"],[14,"seagreen"],[13,"darkgreen"],[12,"green"],[11,"forestgreen"],[10,"olivedrab"],[9,"olive"],[8,"darkkhaki"],[7,"khaki"],[6,"gold"],[5,"orange"],[4,"darkorange"],[3,"orangered"],[2,"red"],[1,"brown"],[0,"darkred"]  ]
             MB_colours_blue = [ [50,"aquamarine"],[40,"turquoise"],[30,"mediumturquoise"],[25,"darkturquoise"],[18,"deepskyblue"],[15,"dodgerblue"],[10,"cornflowerblue"],[7,"royalblue"],[4,"blue"],[3,"mediumblue"],[2,"darkblue"],[1,"navy"],[0,"midnightblue"] ]
             colour_before = ""
             y = 0
@@ -778,11 +880,9 @@ class MBsetPage(tk.Frame):
                 Y = -limit
                 while Y < limit:                                                                   #y loop starting at -400 each time
                     Y += res
-                    Xscale = X / 100                                                                # /200 for scale- should be between -2 &2  , not -400 & 400
-                    Yscale = Y / 100
                     ans = complex(0,0)                                                              #reset ans
                     for i in range(0,100):                                                          #The number of iterations - the more, the more accurate
-                        ans = ( ans**2 + complex(Xscale, Yscale) )                                      
+                        ans = ( ans**2 + complex(X, Y) )                                      
                         if (ans.real**2) + (ans.imag**2) >= 4:                                      #checks weather stable or not. As anything that leaves a circle with radius 2 is unstable
                             stable = False
                             found_colour = False
@@ -806,11 +906,11 @@ class MBsetPage(tk.Frame):
                         colour = "black"
                     if colour_before != colour:                                         #only draw new line when colour has changed
                         #print(colour_before)
-                        s.plot([X-res, X],[Yprev-res,Y], colour_before, linewidth=1.1*res)
+                        s.plot([X-res, X],[Yprev-res,Y], colour_before, linewidth=100.1*res)
                         colour_before = colour
                         Yprev = Y
                     if Y >= limit:                                                                    #stops overlaping colours when y resets to -400
-                        s.plot([X, X],[Yprev,limit], colour_before, linewidth=1.1*res)
+                        s.plot([X, X],[Yprev,limit], colour_before, linewidth=100.1*res)
                         Yprev = -limit
 
             canvas.draw()
@@ -821,9 +921,9 @@ class MBsetPage(tk.Frame):
             progress['value'] = 0 
             self.update_idletasks()
             slider.set(3)
-            #self.axis.set(0)
-            #self.red.set(0)
-            #self.blue.set(0)
+            self.axis.set(0)
+            self.red.set(0)
+            self.blue.set(0)
             controller.show_frame(ComplexPage2)
 
         label = ttk.Label(self, text="Line Width:", font=("Verdana", 9))
