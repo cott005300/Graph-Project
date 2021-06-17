@@ -1,6 +1,7 @@
 from logging import INFO
 import re
 import math
+from tkinter.constants import X
 import matplotlib
 import sys
 import os
@@ -19,11 +20,11 @@ from tkinter import Label, ttk
 from math import sqrt as sqrt
 
 style.use("ggplot")
-f = Figure(figsize=(6,6), dpi=100) 
 ctrlmenu = None
-#f = Figure() 
+f = Figure(figsize=(6,6), dpi=100) 
 s = f.add_subplot(111)
 canvas = FigureCanvasTkAgg(f)
+
 #s.set_title("Cartesian coordinate system")
 limit = 200
 l1 = s.plot([-limit,limit],[0,0], "black")
@@ -43,15 +44,16 @@ y = []
 x_range = []
 
 def colour_change():
-    global colour_index, ctrlmenu
+    global colour_index
+    global ctrlmenu
     if colour_index < len(colours)-1:
         colour_index +=1
     else:
         colour_index = 0
     if colours[colour_index] == "dodgerblue":
-        ctrlmenu.entryconfigure(0, label="Swap Colour: light blue")
+        ctrlmenu.entryconfig(0,label="Swap Colour: light blue")
     else:
-        ctrlmenu.entryconfigure(0, label="Swap Colour: "+colours[colour_index])
+        ctrlmenu.entryconfig(0,label="Swap Colour: "+colours[colour_index])
 
 def popupmesg(title, msg):
     popup = tk.Tk()
@@ -73,8 +75,11 @@ def clear_axis(MBset):
         limit = 2
         s.axis([-2.1,2.1,-2.1,2.1])
     else:
+        limit = 200
         l1 = s.plot([-limit,limit],[0,0], "black")
         l2 = s.plot([0,0],[-limit,limit], "black")
+        s.set_ylim([0-(1.05*limit), 0+(1.05*limit)])
+        s.set_xlim([0-(1.05*limit), 0+(1.05*limit)])
     canvas.draw()
 
 def axis_pos():
@@ -131,7 +136,7 @@ class main(tk.Tk):                                                          #inh
         container.grid_columnconfigure(0, weight=1)
         
         menubar = tk.Menu(container)
-        ctrlmenu = tk.Menu(menubar, tearoff=1)
+        ctrlmenu = tk.Menu(menubar, tearoff=0)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
         ctrlmenu.add_command(label="Axes Size", command= axis_size)
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
@@ -154,6 +159,9 @@ class main(tk.Tk):                                                          #inh
     
     def show_frame(self, cont):
         frame = self.frames[cont]
+        #
+        # 238174
+        # frame.configure(bg='ghostwhite')
         frame.tkraise()
 
 class StartPage(tk.Frame):
@@ -162,11 +170,18 @@ class StartPage(tk.Frame):
 
         def Real():
             clear_axis(False)
+            s.set_xlabel('X')
+            s.set_ylabel('Y')
+            canvas.draw()
             controller.show_frame(PageTwo)
         def Complex():
             clear_axis(False)
+            s.set_xlabel('Real')
+            s.set_ylabel('Imaginary')
+            canvas.draw()
             controller.show_frame(ComplexPage2)
 
+        #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
         label.pack(pady=10, padx=20)
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
@@ -459,6 +474,12 @@ class BarChartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         global x, y
 
+        def check_box(self):
+            if self.show_lbs.get() == 0:
+                self.show_lbs.set(1)
+            else:
+                self.show_lbs.set(0)
+
         def button_command(self):
             global x, y
             global limit
@@ -470,9 +491,9 @@ class BarChartPage(tk.Frame):
                 if float(yIn) > limit or float(yIn)<-limit:
                     raise
                 if x:
-                    x.append(x[-1]+10)
+                    x.append(x[-1]+18)
                 else:
-                    x.append(8)
+                    x.append(12)
                 y.append(float(yIn))
             except:
                 popupmesg("!", "I can't take that")
@@ -481,26 +502,32 @@ class BarChartPage(tk.Frame):
             ytemp = ""
             for z in range(0, len(y)):
                 ytemp += str(y[z])+"\n"
-            Ylabel.config(text=str(x[-1]+10)[0]+". Bar Height")
+            Ylabel.config(text=str(len(y)+1)+". Bar Height =")
             Ypoints.config(text="Bar Height\n"+str(ytemp))
 
         def button3_command(self):
             global x, y
+            global colour_index
+            global colours
             if y:
-                clear_axis(False)
+                #clear_axis(False)
                 s.set_ylim([0, limit])
                 s.set_xlim([0, limit])
-                Ypoints.config(text="")
-                s.bar(x,y,width=8,align="center",color=colours[colour_index])
+                barlist = s.bar(x,y,width=10,align="center",color=colours[colour_index])
+
+                if self.show_lbs.get() == 1:
+                    for i in range(len(x)): 
+                        s.text(x = x[i], y = y[i]+1, s = round(y[i],1), size = 8, ha="center")
+                s.set_xlabel(XAxeslabelIn.get())
+                s.set_ylabel(YAxeslabelIn.get())
                 canvas.draw()
                 colour_change()
-                temp = ""
-                for z in range(1, len(y)+1):
-                    temp += "\n"+str(z) + ". "+str(y[z-1])
-                popupmesg("Bar Graph", "Bars:"+temp)
                 x = []
                 y = []
                 Ypoints.config(text="")
+                Ylabel.config(text="1. Bar height =")
+                XAxeslabelIn.delete(0, tk.END)
+                YAxeslabelIn.delete(0, tk.END)
                 controller.show_frame(PageTwo)
             else:
                 popupmesg("!", "Need more bars")
@@ -510,6 +537,10 @@ class BarChartPage(tk.Frame):
             x = []
             y = []
             Ypoints.config(text="")
+            Ylabel.config(text="1. Bar height =")
+            XAxeslabelIn.delete(0, tk.END)
+            YAxeslabelIn.delete(0, tk.END)
+            Y_pointin.delete(0, tk.END)
             controller.show_frame(PageTwo)
 
         x = []
@@ -517,17 +548,32 @@ class BarChartPage(tk.Frame):
         Y_pointin = ttk.Entry(self, width="10")
         Ylabel = ttk.Label(self, text="1. Bar height =", font=("Verdana", 9))
         Ypoints = ttk.Label(self, text="", font=("Verdana", 8))
+
+        XAxeslabel = ttk.Label(self, text="X Axis Label = ", font=("Verdana", 9))
+        opt = ttk.Label(self, text="(Optional)", font=("Verdana", 8))
+        YAxeslabel = ttk.Label(self, text="Y Axis Label = ", font=("Verdana", 9))
+        XAxeslabelIn = ttk.Entry(self, width="15")
+        YAxeslabelIn = ttk.Entry(self, width="15")
+
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
+        self.show_lbs = tk.IntVar()
+        tick = tk.Checkbutton(self, text="Add Bar Labels", variable=self.show_lbs, command=lambda: check_box(self))
         button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
         button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
         self.rline = tk.IntVar()
 
-        Ylabel.grid(row=1,column=0, padx=65, pady=5)
-        Y_pointin.grid(row=1,column=1, padx=5, pady=5)
-        button1.grid(row=2,column=1, pady=10)
-        button2.grid(row=2,column=0, pady=10)
-        button3.grid(row=4,column=1, pady=5)
-        Ypoints.grid(row=3,column=1, pady=5)
+        Ylabel.grid(row=0,column=0, padx=60, pady=5)
+        Y_pointin.grid(row=0,column=1, padx=5, pady=5)
+        button1.grid(row=1,column=1, pady=10)
+        button2.grid(row=1,column=0, padx=60, pady=10)
+        Ypoints.grid(row=2,column=1, padx = 10, pady=10)
+        XAxeslabel.grid(row=3,column=0, padx=60, pady=10)
+        YAxeslabel.grid(row=5,column=0, padx=60, pady=10)
+        XAxeslabelIn.grid(row=3,column=1, pady=1)
+        opt.grid(row=4, column=1, pady=1)
+        YAxeslabelIn.grid(row=5,column=1, pady=1)
+        button3.grid(row=6,column=1, pady=15)
+        tick.grid(row=6, column=0)
 
 
 class ComplexPage2(tk.Frame):
