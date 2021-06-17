@@ -361,7 +361,7 @@ class Scatter(tk.Frame):
         def button3_command(self):
             global x, y
             if len(x) >= 2 or len(y) >= 2:
-                draw.Scatter()
+                draw.Scatter("x")
                 Xpoints.config(text="")
                 Ypoints.config(text="")
                 if self.rline.get() == 1:
@@ -808,7 +808,7 @@ class MBsetPage(tk.Frame):
             #self.blue.set(0)
             controller.show_frame(ComplexPage2)
 
-        label = ttk.Label(self, text="Resolution:", font=("Verdana", 9))
+        label = ttk.Label(self, text="Line Width:", font=("Verdana", 9))
         self.current_value = tk.IntVar()
         slider = ttk.Scale(self, from_=0.1, to=5,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=3)
         current_value_label = ttk.Label(self, text='3')
@@ -1071,9 +1071,9 @@ class draw():
            popupmesg(" ! ","Can't take that!")
            return False
 
-    def Scatter():
+    def Scatter(shape):
         global x, y
-        s.scatter(x, y, s=35, marker="P")
+        s.scatter(x, y, s=35, marker=shape)
         canvas.draw()
 
     def wave(type, m):
@@ -1140,10 +1140,10 @@ class graph_details():
                     graph_type = "linear"
             else:
                 temp2 = str(abcd[pos])[temp+2]     #position of power e.g. x**'3'
-                if temp2 == "2":
+                if temp2 == "2" and str(abcd[pos])[temp-2] == "x":
                     if graph_type == "" or graph_type == "linear":
                         graph_type = "quadratic"
-                elif temp2 == "3":
+                elif temp2 == "3" and str(abcd[pos])[temp-2] == "x" :
                     if graph_type == "" or  graph_type == "quadratic" or graph_type == "linear":
                         graph_type = "cubic"
                 else:
@@ -1170,7 +1170,7 @@ class graph_details():
                     if abcd[i][0] == "-":   #add '-' sign if neccessary
                         c = c[:0] + "-" + c[0:]
 
-            elif abcd[i][temp1+2] == "2":   #if not linear
+            elif abcd[i][temp1+2] == "2" and abcd[i][temp1-2]== "x":   #if not linear
                 for j in range(0, len(abcd[i][:temp1-3])):
                     if abcd[i][j].isnumeric():
                         b += abcd[i][j]
@@ -1179,7 +1179,7 @@ class graph_details():
                 if abcd[i][0] == "-":
                     b = b[:0] + "-" + b[0:]
 
-            elif abcd[i][temp1+2] == "3":
+            elif abcd[i][temp1+2] == "3" and abcd[i][temp1-2]== "x":
                 for j in range(0, len(abcd[i][:temp1-3])):
                     if abcd[i][j].isnumeric():
                         a += abcd[i][j]
@@ -1388,8 +1388,8 @@ class graph_details():
         for p in range(0,len(Xpoints)):
             Sxy += (Xpoints[p]-X)*(Ypoints[p]-Y)
             Sxx += (Xpoints[p]-X)**2
-        c = round((Sxy / Sxx),5)
-        d = round((Y-(c*X)),5)
+        c = round((Sxy / Sxx),4)
+        d = round((Y-(c*X)),4)
         if str(c)[0] == "-":
             org_graph = "y = "+str(d)+str(c)+"x"
         else:
