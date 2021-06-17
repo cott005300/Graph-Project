@@ -4,6 +4,7 @@ import math
 import matplotlib
 import sys
 import os
+from tkinter import simpledialog
 
 from numpy import select
 matplotlib.use("TkAgg")
@@ -19,13 +20,14 @@ from math import sqrt as sqrt
 
 style.use("ggplot")
 f = Figure(figsize=(6,6), dpi=100) 
+ctrlmenu = None
 #f = Figure() 
 s = f.add_subplot(111)
 canvas = FigureCanvasTkAgg(f)
 #s.set_title("Cartesian coordinate system")
 limit = 200
-s.plot([-limit,limit],[0,0], "black")
-s.plot([0,0],[-limit,limit], "black")
+l1 = s.plot([-limit,limit],[0,0], "black")
+l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
 
 #a, b, c, d = "", "", "", ""
@@ -34,18 +36,22 @@ org_graph = ""
 graph_type = ""
 roots = []
 turning_points = []
-colours = ["red","orange","yellow","green","blue","pink"]
+colours = ["red","orange","lime","green","dodgerblue","blue","pink","purple"]
 colour_index = 0
 x = []
 y = []
 x_range = []
 
 def colour_change():
-    global colour_index
+    global colour_index, ctrlmenu
     if colour_index < len(colours)-1:
         colour_index +=1
     else:
         colour_index = 0
+    if colours[colour_index] == "dodgerblue":
+        ctrlmenu.entryconfigure(0, label="Swap Colour: light blue")
+    else:
+        ctrlmenu.entryconfigure(0, label="Swap Colour: "+colours[colour_index])
 
 def popupmesg(title, msg):
     popup = tk.Tk()
@@ -60,38 +66,63 @@ def popupmesg(title, msg):
 def clear_axis():
     global colour_index
     global limit
+    global l1, l2
     colour_index = 0
     s.clear()
-    s.plot([-limit,limit],[0,0], "black")
-    s.plot([0,0],[-limit,limit], "black")
+    l1 = s.plot([-limit,limit],[0,0], "black")
+    l2 = s.plot([0,0],[-limit,limit], "black")
     canvas.draw()
 
 class main(tk.Tk):                                                          #inhertit from tk
-    
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
+        global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
+
+      #  def swap_colour():
+       #     global colours, colour_index            
+        #    colour_change()
+
+        def axes_size():
+            global l1, l2
+            limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
+            try:
+                limit = float(limitIn)
+                if limitIn == 0:
+                    raise
+            except:
+                return
+            s.axis([(1.05*-limit), (1.05*limit), (1.05*-limit), (1.05*limit)])
+            line = l1.pop(0)
+            line.remove()
+            line = l2.pop(0)
+            line.remove()
+            l1 = s.plot([-limit,limit],[0,0], "black")
+            l2 = s.plot([0,0],[-limit,limit], "black")
+            canvas.draw()
 
         tk.Tk.iconbitmap(self, default="p icon.ico")
         tk.Tk.wm_title(self, "Peter's graph")
 
         container = tk.Frame(self)                                          #edge of window
         container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
+        container.grid_rowconfigure(0, weight=1)    
         container.grid_columnconfigure(0, weight=1)
         
         menubar = tk.Menu(container)
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Clear graph", command= clear_axis)
-        filemenu.add_separator()
-        filemenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
-        filemenu.add_command(label="Exit", command=quit)
-        menubar.add_cascade(label="Controls", menu=filemenu)
+        ctrlmenu = tk.Menu(menubar, tearoff=0)
+        ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
+        ctrlmenu.add_command(label="Axes Size", command= axes_size)
+        ctrlmenu.add_command(label="Reset Graph", command= clear_axis)
+        ctrlmenu.add_separator()
+        ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
+        ctrlmenu.add_command(label="Exit", command=quit)
+        menubar.add_cascade(label="Controls", menu=ctrlmenu)
 
         tk.Tk.config(self, menu=menubar)
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -114,24 +145,11 @@ class StartPage(tk.Frame):
             controller.show_frame(ComplexPage2)
 
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
-        label.pack(pady=10, padx=10)
+        label.pack(pady=10, padx=20)
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
-        button2.pack(pady=10)
+        button2.pack(pady=30)
         button3 = ttk.Button(self, text="Argand Digaram", command=Complex)                 #lambda allows you to pass things into function
-        button3.pack(pady=10)
-        button1 = ttk.Button(self, text="Help", command=lambda: controller.show_frame(PageOne))                 #lambda allows you to pass things into function
-        button1.pack(pady=20)
-
-
-class PageOne(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = ttk.Label(self, text="Help Page", font=("Verdana", 12))
-        label.pack(padx = 10, pady=10)
-        label2 = ttk.Label(self, text="This page is where you can find help \n Good Luck!", font=("Verdana", 8))
-        label2.pack(padx = 10, pady=20)
-        button1 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))                #lambda allows you to pass things into function
-        button1.pack(pady = 30)
+        button3.pack(pady=5)
 
 class PageTwo(tk.Frame):
     def __init__(self, parent, controller):
@@ -754,7 +772,7 @@ class MBsetPage(tk.Frame):
             X = -limit - res
             Yprev = 0
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
-                progress['value'] = (((X+200)/400)*100)
+                progress['value'] = (((X+limit)/(2*limit))*100)
                 self.update_idletasks()
                 X += res
                 Y = -limit
