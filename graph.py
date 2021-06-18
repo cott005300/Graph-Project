@@ -7,6 +7,10 @@ import sys
 import os
 from tkinter import simpledialog
 
+from sort import sort
+from serach import search
+from make_list import make_list
+
 from numpy import select
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -18,6 +22,8 @@ import tkinter as tk
 from tkinter import Label, ttk
 
 from math import sqrt as sqrt
+sys.setrecursionlimit(5000)
+#print(sys.getrecursionlimit())
 
 style.use("ggplot")
 ctrlmenu = None
@@ -99,33 +105,30 @@ def axis_pos():
     s.set_xlim([posinx-(1.05*limit), posinx+(1.05*limit)])
     canvas.draw()
 
+def axis_size(limitIn):
+    global l1, l2
+    global limit
+    if limitIn == 0:
+        limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
+    try:
+        limit = float(limitIn)
+        if limitIn == 0:
+            raise
+    except:
+        return
+    s.axis([(1.05*-limit), (1.05*limit), (1.05*-limit), (1.05*limit)])
+    line = l1.pop(0)
+    line.remove()
+    line = l2.pop(0)
+    line.remove()
+    l1 = s.plot([-limit,limit],[0,0], "black")
+    l2 = s.plot([0,0],[-limit,limit], "black")
+    canvas.draw()
+
 class main(tk.Tk):                                                          #inhertit from tk
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
         global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
-
-      #  def swap_colour():
-       #     global colours, colour_index            
-        #    colour_change()
-
-        def axis_size():
-            global l1, l2
-            global limit
-            limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
-            try:
-                limit = float(limitIn)
-                if limitIn == 0:
-                    raise
-            except:
-                return
-            s.axis([(1.05*-limit), (1.05*limit), (1.05*-limit), (1.05*limit)])
-            line = l1.pop(0)
-            line.remove()
-            line = l2.pop(0)
-            line.remove()
-            l1 = s.plot([-limit,limit],[0,0], "black")
-            l2 = s.plot([0,0],[-limit,limit], "black")
-            canvas.draw()
 
         tk.Tk.iconbitmap(self, default="p icon.ico")
         tk.Tk.wm_title(self, "Peter's graph")
@@ -138,7 +141,7 @@ class main(tk.Tk):                                                          #inh
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
-        ctrlmenu.add_command(label="Axes Size", command= axis_size)
+        ctrlmenu.add_command(label="Axes Size", command= lambda: axis_size(0))
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
         ctrlmenu.add_separator()
@@ -150,7 +153,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, circlePage, PointPage, wavePage, Scatter, BarChartPage,ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage,ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -187,9 +190,12 @@ class StartPage(tk.Frame):
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
         button2.pack(pady=30)
         button3 = ttk.Button(self, text="Argand Digaram", command=Complex)                 #lambda allows you to pass things into function
-        button3.pack(pady=5)
+        button3.pack()
+        button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )                 #lambda allows you to pass things into function
+        button4.pack(pady=50)
 
 class PageTwo(tk.Frame):
+    
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
@@ -475,16 +481,15 @@ class BarChartPage(tk.Frame):
         global x, y
 
         def check_box(self):
-            if self.show_lbs.get() == 0:
-                self.show_lbs.set(1)
+            if self.show_lbs.get() == False:
+                self.show_lbs.set(True)
             else:
-                self.show_lbs.set(0)
+                self.show_lbs.set(False)
 
         def button_command(self):
             global x, y
             global limit
             yIn = Y_pointin.get()
-
             try:
                 if yIn == "":
                     yIn = 0
@@ -507,23 +512,7 @@ class BarChartPage(tk.Frame):
 
         def button3_command(self):
             global x, y
-            global colour_index
-            global colours
-            if y:
-                #clear_axis(False)
-                s.set_ylim([0, limit])
-                s.set_xlim([0, limit])
-                barlist = s.bar(x,y,width=10,align="center",color=colours[colour_index])
-
-                if self.show_lbs.get() == 1:
-                    for i in range(len(x)): 
-                        s.text(x = x[i], y = y[i]+1, s = round(y[i],1), size = 8, ha="center")
-                s.set_xlabel(XAxeslabelIn.get())
-                s.set_ylabel(YAxeslabelIn.get())
-                canvas.draw()
-                colour_change()
-                x = []
-                y = []
+            if draw.bar_graph(self.show_lbs.get(), XAxeslabelIn.get(), YAxeslabelIn.get()):
                 Ypoints.config(text="")
                 Ylabel.config(text="1. Bar height =")
                 XAxeslabelIn.delete(0, tk.END)
@@ -556,8 +545,8 @@ class BarChartPage(tk.Frame):
         YAxeslabelIn = ttk.Entry(self, width="15")
 
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
-        self.show_lbs = tk.IntVar()
-        tick = tk.Checkbutton(self, text="Add Bar Labels", variable=self.show_lbs, command=lambda: check_box(self))
+        self.show_lbs = tk.BooleanVar()
+        tick = tk.Checkbutton(self, text="Add Bar Labels",onvalue=True, offvalue=False, variable=self.show_lbs, command=lambda: check_box(self))
         button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
         button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
         self.rline = tk.IntVar()
@@ -996,6 +985,56 @@ class MBsetPage(tk.Frame):
         button2.grid(row=3,column=0, pady=8)
         progress.grid(row=4, column=1,pady=8)
 
+class sortPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def sort_compere(self):
+            global x, y
+            try:
+                if int(lengthIn.get()) > 3200 or float(lengthIn.get()) < 0:
+                    raise
+                items = make_list.Random(1, 1, int(lengthIn.get()), int(rangeIn.get()))
+                m1, s1, p1 = sort.start(1, items, 2, 1)
+                m2, s2, p2 = sort.start(2, items, 2, 1)
+                m3, s3, p3 = sort.start(3, items, 2, 1)
+                m4, s4, p4 = sort.start(4, items, 2, 1)
+                x = [25, 75, 125, 175]
+                clear_axis(False)
+            except:
+                popupmesg("!", "Can't take that")
+                return
+            if self.option_var.get() == "Passes":
+                y = [p1, p2, p3, p4]
+                draw.bar_graph(True, "Bubble, Insertion, Merge, Quick           ", "Passes")
+            elif self.option_var.get() == "Time":
+                y = [((m1*60)+s1)*10, ((m2*60)+s2*10), ((m3*60)+s3*10), ((m4*60)+s4)*10 ] 
+                draw.bar_graph(True, "Bubble, Insertion, Merge, Quick", "Time (secs x10)")
+            lengthIn.delete(0, tk.END)
+            rangeIn.delete(0, tk.END)
+            controller.show_frame(StartPage)
+        
+        lengthLbl = ttk.Label(self, text="Length of List =")
+        lengthIn = ttk.Entry(self, width="10")
+        rangeLbl = ttk.Label(self, text="Range =")
+        rangeIn = ttk.Entry(self, width="10")
+
+        measurelbl = ttk.Label(self, text="Measure: ")
+        self.options = ("Passes", "Time")
+        self.option_var = tk.StringVar()
+        option_menu = ttk.OptionMenu(self, self.option_var, self.options[0],*self.options)
+
+        button1 = ttk.Button(self, text="Compare", command=lambda: sort_compere(self))
+        button2 = ttk.Button(self, text="Back", command=controller.show_frame(StartPage))
+
+        lengthLbl.grid(row=0,column=0,padx = 60, pady=10)
+        rangeLbl.grid(row=1,column=0, pady=10)
+        rangeIn.grid(row=1,column=1, pady=10)
+        lengthIn.grid(row=0,column=1, pady=10)
+        measurelbl.grid(row=2, column=0)
+        option_menu.grid(row=2, column=1, pady=10, padx=5)
+        button1.grid(row=3,column=1, pady=20)
+        button2.grid(row=3,column=0, pady=20)
 
 class checkVars():
     def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
@@ -1285,6 +1324,36 @@ class draw():
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         canvas.draw()
         colour_change()
+
+    def bar_graph(showlbs, XAxeslabel, YAxeslabel):
+        global x, y
+        global colours, colour_index
+        limittemp = None
+        if y:
+            #clear_axis(False)
+            for i in range(0, len(y)):
+                if y[i] > limit:
+                    limittemp = y[i]
+            if limittemp == None:
+                s.set_ylim([0, limit])
+                s.set_xlim([0, limit])
+            else:
+                s.set_ylim([0, limittemp*1.05])
+                s.set_xlim([0, limit])
+            s.set_xlabel(XAxeslabel)
+            s.set_ylabel(YAxeslabel)
+            s.bar(x,y,width=10,align="center",color=colours[colour_index])
+
+            if showlbs == True:
+                for i in range(len(x)): 
+                    s.text(x = x[i], y = y[i]+1, s = round(y[i],1), size = 8, ha="center")
+            canvas.draw()
+            colour_change()
+            x = []
+            y = []
+            return True
+        else:
+            return False
 
 class graph_details():
     def details():
