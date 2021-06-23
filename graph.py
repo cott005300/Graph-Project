@@ -80,6 +80,8 @@ def clear_axis(MBset):
     if MBset:
         limit = 2
         s.axis([-2.1,2.1,-2.1,2.1])
+        s.set_xlabel('Real')
+        s.set_ylabel('Imaginary')
     else:
         limit = 200
         l1 = s.plot([-limit,limit],[0,0], "black")
@@ -146,7 +148,7 @@ class main(tk.Tk):                                                          #inh
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
-        ctrlmenu.add_command(label="Exit", command=quit)
+        ctrlmenu.add_command(label="Exit", command=sys.exit)
         menubar.add_cascade(label="Controls", menu=ctrlmenu)
 
         tk.Tk.config(self, menu=menubar)
@@ -1324,6 +1326,8 @@ class draw():
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         canvas.draw()
         colour_change()
+        x = []
+        y = []
 
     def bar_graph(showlbs, XAxeslabel, YAxeslabel):
         global x, y
