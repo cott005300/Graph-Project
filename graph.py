@@ -1002,6 +1002,7 @@ class statsPage(tk.Frame):
                 popupmesg("!", "Too many numbers")
                 x_pointin.delete(0, tk.END)
                 f_pointin.delete(0, tk.END)
+                return
 
             X = str(x_pointin.get())
             f = str(f_pointin.get())
@@ -1012,6 +1013,10 @@ class statsPage(tk.Frame):
             try:
                 X = float(X)
                 f = float(f)
+                if X.is_integer():
+                    X = int(X)
+                if f.is_integer():
+                    f = int(f)
                 x.append(X)
                 y.append(f)
                 table.insert(parent="", index="end", iid=self.counter-1, text=str(self.counter),values=(X, f))
@@ -1064,15 +1069,26 @@ class statsPage(tk.Frame):
 
             # σ Σ x̄ ²
             popupmesg("Stats", "x̄ = "+str(mean)+"\nΣx = "+str(Zx)+"\nΣx² = "+str(Zx2)+"\nσ² = "+str(variance)+"\nσ = "+str(SD)+"\nΣf (n) = "+str(Zf)+"\nQ1 = "+str(Q1)+"\nQ2 = "+str(Q2)+"\nQ3 = "+str(Q3)+"\nIQR = "+str(IQR))
-
             x = []
             y = []
             back()
+
+        def undo(self):
+            global x, y
+            if x:
+                table.delete(self.counter-2)
+                del x[-1]
+                del y[-1]
+                x_pointin.delete(0, tk.END)
+                if x:
+                    x_pointin.insert(0,str(x[-1]+1))
+                self.counter -= 1
         
         def back():
             global x, y
             x = []
             y = []
+            self.counter = 1
             x_pointin.delete(0, tk.END)
             f_pointin.delete(0, tk.END)
             for i in table.get_children():
@@ -1082,9 +1098,9 @@ class statsPage(tk.Frame):
         self.counter = 1
         table = ttk.Treeview(self)
         table["columns"] = ("x", "f")
-        table.column("#0", width=70, minwidth=35,anchor=CENTER)
-        table.column("x", anchor=CENTER, minwidth=40, width=75)
-        table.column("f", anchor=CENTER, minwidth=40, width=75)
+        table.column("#0", width=60, minwidth=35,anchor=CENTER)
+        table.column("x", anchor=CENTER, minwidth=40, width=70)
+        table.column("f", anchor=CENTER, minwidth=40, width=90)
 
         table.heading("#0", text="Input", anchor=CENTER)
         table.heading("x", anchor=CENTER, text="x")
@@ -1097,9 +1113,11 @@ class statsPage(tk.Frame):
         f_pointin = ttk.Entry(self, width="10")
         f_pointin.grid(row=1, column=1,pady=5)
         button1 = ttk.Button(self, text="Enter", command=lambda:button_command(self, x_pointin,f_pointin)).grid(row=2, column=1,pady=8)
-        table.grid(row=3, column=0, columnspan=2,padx=50, pady=20)
+        button4 = ttk.Button(self, text="Undo last", command=lambda:undo(self)).grid(row=2, column=0)
+        table.grid(row=3, column=0, columnspan=2,padx=65, pady=20)
         button2 = ttk.Button(self, text="Finish", command=finish).grid(row=4, column=1)
         button3 = ttk.Button(self, text="Back", command=back).grid(row=4, column=0)
+        canvas.configure(scrollregion=canvas.bbox(table))
 
 
 
