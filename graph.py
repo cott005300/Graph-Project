@@ -1,14 +1,14 @@
 from logging import INFO
 import re
 import math
-from tkinter.constants import X
+from tkinter.constants import ANCHOR, CENTER, X
 import matplotlib
 import sys
 import os
 from tkinter import simpledialog
 
 from sort import sort
-from serach import search
+#from serach import search
 from make_list import make_list
 
 from numpy import select
@@ -21,7 +21,7 @@ from matplotlib import pyplot as plt
 import tkinter as tk
 from tkinter import Label, ttk
 
-from math import sqrt as sqrt
+from math import ceil, sqrt as sqrt
 sys.setrecursionlimit(5000)
 #print(sys.getrecursionlimit())
 
@@ -155,7 +155,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage,ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -166,7 +166,7 @@ class main(tk.Tk):                                                          #inh
         frame = self.frames[cont]
         #
         # 238174
-        # frame.configure(bg='ghostwhite')
+        #frame.configure(bg='ghostwhite')
         frame.tkraise()
 
 class StartPage(tk.Frame):
@@ -188,11 +188,13 @@ class StartPage(tk.Frame):
 
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
-        label.pack(pady=10, padx=20)
+        label.pack(pady=10, padx=30)
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
-        button2.pack(pady=30)
+        button2.pack(pady=20)
         button3 = ttk.Button(self, text="Argand Digaram", command=Complex)                 #lambda allows you to pass things into function
-        button3.pack()
+        button3.pack(pady = 20)
+        button5 = ttk.Button(self, text="Statistics", command=lambda:controller.show_frame(statsPage) )                 #lambda allows you to pass things into function
+        button5.pack(pady = 20)
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )                 #lambda allows you to pass things into function
         button4.pack(pady=50)
 
@@ -986,6 +988,126 @@ class MBsetPage(tk.Frame):
         button1.grid(row=3,column=1, pady=8)
         button2.grid(row=3,column=0, pady=8)
         progress.grid(row=4, column=1,pady=8)
+
+
+
+
+class statsPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def  button_command(self, x_pointin, f_pointin):
+            global x, y
+            if self.counter > 20:
+                popupmesg("!", "Too many numbers")
+                x_pointin.delete(0, tk.END)
+                f_pointin.delete(0, tk.END)
+
+            X = str(x_pointin.get())
+            f = str(f_pointin.get())
+            if not(X):
+                X = 0
+            if not(f):
+                f = 1
+            try:
+                X = float(X)
+                f = float(f)
+                x.append(X)
+                y.append(f)
+                table.insert(parent="", index="end", iid=self.counter-1, text=str(self.counter),values=(X, f))
+                self.counter += 1
+                x_pointin.delete(0, tk.END)
+                f_pointin.delete(0, tk.END)
+                x_pointin.insert(0,str(X+1))
+            except:
+                popupmesg("!", "Can't take that")
+
+        def finish():
+            global x, y
+            Zx = 0      #fx
+            Zf = 0      #n
+            Zx2 = 0     #fx²
+            for z in range(0,len(x)):
+            #sum of f
+                Zf += y[z]
+            #sum of x
+                Zx += y[z]*(x[z])
+            #sum of fx squared
+                Zx2 += y[z]*(x[z])**2
+            #mean
+            mean = Zx / Zf
+            #variance
+            variance = (Zx2 / Zf) - (mean**2)
+            #SD
+            SD = variance**0.5
+            #Q1 position
+            Q1pos = (Zf)*0.25
+            #median or Q2 posistion
+            Q2pos = (Zf)*0.5
+            #Q3 position
+            Q3pos = (Zf)*0.75
+            # Q1, Q2, Q3
+            Q1 = ""
+            Q2 = ""
+            Q3 = ""
+            CF = 0 #cumulative frequency
+            for i in range (0,len(y)):
+                CF += y[i]
+                if not(Q1) and CF > Q1pos:
+                    Q1 = x[i]
+                if not(Q2) and CF > Q2pos:
+                    Q2 = x[i]
+                if not(Q3) and CF > Q3pos:
+                    Q3 = x[i]
+            #inter quartile range
+            IQR = Q3 - Q2
+
+            # σ Σ x̄ ²
+            popupmesg("Stats", "x̄ = "+str(mean)+"\nΣx = "+str(Zx)+"\nΣx² = "+str(Zx2)+"\nσ² = "+str(variance)+"\nσ = "+str(SD)+"\nΣf (n) = "+str(Zf)+"\nQ1 = "+str(Q1)+"\nQ2 = "+str(Q2)+"\nQ3 = "+str(Q3)+"\nIQR = "+str(IQR))
+
+            x = []
+            y = []
+            back()
+        
+        def back():
+            global x, y
+            x = []
+            y = []
+            x_pointin.delete(0, tk.END)
+            f_pointin.delete(0, tk.END)
+            for i in table.get_children():
+                table.delete(i)
+            controller.show_frame(StartPage)
+
+        self.counter = 1
+        table = ttk.Treeview(self)
+        table["columns"] = ("x", "f")
+        table.column("#0", width=70, minwidth=35,anchor=CENTER)
+        table.column("x", anchor=CENTER, minwidth=40, width=75)
+        table.column("f", anchor=CENTER, minwidth=40, width=75)
+
+        table.heading("#0", text="Input", anchor=CENTER)
+        table.heading("x", anchor=CENTER, text="x")
+        table.heading("f", anchor=CENTER, text="f")
+
+        xlabel = ttk.Label(self, text="x =").grid(row=0, column=0,pady=5)
+        x_pointin = ttk.Entry(self, width="10")
+        x_pointin.grid(row=0, column=1,pady=5)
+        flabel = ttk.Label(self, text="f =").grid(row=1, column=0,pady=5)
+        f_pointin = ttk.Entry(self, width="10")
+        f_pointin.grid(row=1, column=1,pady=5)
+        button1 = ttk.Button(self, text="Enter", command=lambda:button_command(self, x_pointin,f_pointin)).grid(row=2, column=1,pady=8)
+        table.grid(row=3, column=0, columnspan=2,padx=50, pady=20)
+        button2 = ttk.Button(self, text="Finish", command=finish).grid(row=4, column=1)
+        button3 = ttk.Button(self, text="Back", command=back).grid(row=4, column=0)
+
+
+
+
+
+
+
+
 
 class sortPage(tk.Frame):
     def __init__(self, parent, controller):
