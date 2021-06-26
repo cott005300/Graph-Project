@@ -8,6 +8,7 @@ import os
 from tkinter import simpledialog
 
 from sort import sort
+from SUVAT_maths import SUVAT
 #from serach import search
 from make_list import make_list
 
@@ -38,6 +39,7 @@ l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
 
 #a, b, c, d = "", "", "", ""
+# σ Σ x̄ ²
 graph = ""
 org_graph = ""
 graph_type = ""
@@ -48,6 +50,7 @@ colour_index = 0
 x = []
 y = []
 x_range = []
+
 
 def colour_change():
     global colour_index
@@ -127,6 +130,7 @@ def axis_size(limitIn):
     l2 = s.plot([0,0],[-limit,limit], "black")
     canvas.draw()
 
+
 class main(tk.Tk):                                                          #inhertit from tk
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
         global ctrlmenu
@@ -155,7 +159,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, SUVATPage, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -168,6 +172,7 @@ class main(tk.Tk):                                                          #inh
         # 238174
         #frame.configure(bg='ghostwhite')
         frame.tkraise()
+
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -189,13 +194,15 @@ class StartPage(tk.Frame):
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
         label.pack(pady=10, padx=30)
-        button2 = ttk.Button(self, text="Cartesian Grid", command=Real)                 #lambda allows you to pass things into function
+        button2 = ttk.Button(self, text="Cartesian Grid", command=Real) 
         button2.pack(pady=20)
-        button3 = ttk.Button(self, text="Argand Digaram", command=Complex)                 #lambda allows you to pass things into function
+        button3 = ttk.Button(self, text="Argand Digaram", command=Complex) 
         button3.pack(pady = 20)
-        button5 = ttk.Button(self, text="Statistics", command=lambda:controller.show_frame(statsPage) )                 #lambda allows you to pass things into function
+        button5 = ttk.Button(self, text="Statistics", command=lambda:controller.show_frame(statsPage) )         #lambda allows you to pass things into function
         button5.pack(pady = 20)
-        button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )                 #lambda allows you to pass things into function
+        button6 = ttk.Button(self, text="SUVAT", command=lambda:controller.show_frame(SUVATPage) )
+        button6.pack(pady = 20)
+        button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
         button4.pack(pady=50)
 
 class PageTwo(tk.Frame):
@@ -353,8 +360,6 @@ class PointPage(tk.Frame):
         button1.grid(row=2,column=1, pady=10)
         button2.grid(row=2,column=0, pady=10)
 
-
-
 class wavePage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -477,7 +482,6 @@ class Scatter(tk.Frame):
         tick.grid(row=4,column=0, pady=5)
         Ypoints.grid(row=3,column=1, pady=5)
         Xpoints.grid(row=3,column=0, pady=5)
-
 
 class BarChartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -853,7 +857,6 @@ class PbisectorPage(tk.Frame):
         button1.grid(row=6,column=1, pady=25)
         button2.grid(row=6,column=0, pady=2)
 
-
 class MBsetPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -990,8 +993,6 @@ class MBsetPage(tk.Frame):
         progress.grid(row=4, column=1,pady=8)
 
 
-
-
 class statsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -1106,7 +1107,7 @@ class statsPage(tk.Frame):
         table.heading("x", anchor=CENTER, text="x")
         table.heading("f", anchor=CENTER, text="f")
 
-        xlabel = ttk.Label(self, text="x =").grid(row=0, column=0,pady=5)
+        xlabel = ttk.Label(self, text="x =").grid(row=0, column=0,pady=5)           #, padx = 20, sticky="E")
         x_pointin = ttk.Entry(self, width="10")
         x_pointin.grid(row=0, column=1,pady=5)
         flabel = ttk.Label(self, text="f =").grid(row=1, column=0,pady=5)
@@ -1117,14 +1118,52 @@ class statsPage(tk.Frame):
         table.grid(row=3, column=0, columnspan=2,padx=65, pady=20)
         button2 = ttk.Button(self, text="Finish", command=finish).grid(row=4, column=1)
         button3 = ttk.Button(self, text="Back", command=back).grid(row=4, column=0)
-        canvas.configure(scrollregion=canvas.bbox(table))
 
 
+class SUVATPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
 
+        def enter(self, S_pointin, U_pointin, V_pointin, A_pointin, T_pointin):
+            s = S_pointin.get()
+            u = U_pointin.get()
+            v = V_pointin.get()
+            a = A_pointin.get()
+            t = T_pointin.get()
+            try:
+                s, u, v, a, t = SUVAT.calculate(s, u, v, a, t)
+                popupmesg("SUVAT", "S = "+str(s)+"\nU = "+str(u)+"\nV = "+str(v)+"\nA = "+str(a)+"\nT = "+str(t))
+                back()
+            except:
+                popupmesg("!", "I can't take that")
+            
 
+        def back():
+            S_pointin.delete(0, tk.END)
+            U_pointin.delete(0, tk.END)
+            V_pointin.delete(0, tk.END)
+            A_pointin.delete(0, tk.END)
+            T_pointin.delete(0, tk.END)
+            controller.show_frame(StartPage)
 
+        Slabel = ttk.Label(self, text="S =").grid(row=0, column=0, padx=65, pady=10)
+        Ulabel = ttk.Label(self, text="U =").grid(row=1, column=0,pady=10) 
+        Vlabel = ttk.Label(self, text="V =").grid(row=2, column=0,pady=10) 
+        Alabel = ttk.Label(self, text="A =").grid(row=3, column=0,pady=10) 
+        Tlabel = ttk.Label(self, text="T =").grid(row=4, column=0,pady=10)
+        S_pointin = ttk.Entry(self, width="10")
+        U_pointin = ttk.Entry(self, width="10")
+        V_pointin = ttk.Entry(self, width="10")
+        A_pointin = ttk.Entry(self, width="10")
+        T_pointin = ttk.Entry(self, width="10")
+        S_pointin.grid(row=0, column=1,pady=10)
+        U_pointin.grid(row=1, column=1,pady=10)
+        V_pointin.grid(row=2, column=1,pady=10)
+        A_pointin.grid(row=3, column=1,pady=10)
+        T_pointin.grid(row=4, column=1,pady=10)
 
-
+        button2 = ttk.Button(self, text="Enter", command=lambda: enter(self, S_pointin, U_pointin, V_pointin, A_pointin, T_pointin)).grid(row=5, column=1, pady=20)
+        button3 = ttk.Button(self, text="Back", command=back).grid(row=5, column=0, pady=20, padx=65)
 
 
 class sortPage(tk.Frame):
@@ -1177,6 +1216,7 @@ class sortPage(tk.Frame):
         option_menu.grid(row=2, column=1, pady=10, padx=5)
         button1.grid(row=3,column=1, pady=20)
         button2.grid(row=3,column=0, pady=20)
+
 
 class checkVars():
     def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
@@ -1268,7 +1308,6 @@ class checkVars():
         except:
             popupmesg(" ! ","Can't take that!")
             return False, None, None, None
-
 
 
 class draw():
@@ -1381,9 +1420,9 @@ class draw():
             lble = "|z - ("+str(cx)+"+"+str(cy)+") = "+str(r)
         else:    
             if cx ==0 and cy == 0:            
-                lble = "x^2 + y^2 = "+str(r)
+                lble = "x² + y² = "+str(r)
             elif cx !=0 or cy != 0:
-                lble = "(x+"+str(cx)+")^2+(y+"+str(cy)+")^2="+str(r) 
+                lble = "(x+"+str(cx)+")²+(y+"+str(cy)+")²="+str(r) 
         org_graph = lble
 
         s.plot(x,y, colours[colour_index], label=lble)
@@ -1498,6 +1537,7 @@ class draw():
             return True
         else:
             return False
+
 
 class graph_details():
     def details():
@@ -1772,6 +1812,7 @@ class graph_details():
         else:
             org_graph = "y = "+str(d)+" + "+str(c)+"x"
         graph = str(c)+"*(x) +"+str(d)
+
 
 app = main()
 app.geometry("360x440+825+1")
