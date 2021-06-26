@@ -2,10 +2,13 @@ from logging import INFO
 import re
 import math
 from tkinter.constants import ANCHOR, CENTER, X
+from typing import Text
 import matplotlib
 import sys
 import os
 from tkinter import simpledialog
+
+import numpy
 
 from sort import sort
 from SUVAT_maths import SUVAT
@@ -22,7 +25,9 @@ from matplotlib import pyplot as plt
 import tkinter as tk
 from tkinter import Label, ttk
 
-from math import ceil, sqrt as sqrt
+from fractions import Fraction
+from decimal import Decimal
+from math import ceil, degrees, sqrt as sqrt
 sys.setrecursionlimit(5000)
 #print(sys.getrecursionlimit())
 
@@ -159,7 +164,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, SUVATPage, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, SUVATPage, calculator, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -193,17 +198,19 @@ class StartPage(tk.Frame):
 
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
-        label.pack(pady=10, padx=30)
+        label.pack(pady=10, padx=25)
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real) 
-        button2.pack(pady=20)
+        button2.pack(pady=15)
         button3 = ttk.Button(self, text="Argand Digaram", command=Complex) 
-        button3.pack(pady = 20)
+        button3.pack(pady = 15)
+        button7 = ttk.Button(self, text="Calculator", command=lambda:controller.show_frame(calculator) )
+        button7.pack(pady = 15)
         button5 = ttk.Button(self, text="Statistics", command=lambda:controller.show_frame(statsPage) )         #lambda allows you to pass things into function
-        button5.pack(pady = 20)
+        button5.pack(pady = 15)
         button6 = ttk.Button(self, text="SUVAT", command=lambda:controller.show_frame(SUVATPage) )
-        button6.pack(pady = 20)
+        button6.pack(pady = 15)
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
-        button4.pack(pady=50)
+        button4.pack(pady=30)
 
 class PageTwo(tk.Frame):
     
@@ -1118,6 +1125,108 @@ class statsPage(tk.Frame):
         table.grid(row=3, column=0, columnspan=2,padx=65, pady=20)
         button2 = ttk.Button(self, text="Finish", command=finish).grid(row=4, column=1)
         button3 = ttk.Button(self, text="Back", command=back).grid(row=4, column=0)
+
+
+class calculator(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #def check_box(self):
+        #    if self.degrees.get() == False:
+        #        self.degrees.set(True)
+        #    else:
+        #        self.degrees.set(False)
+
+        def enter(self, sumIn):
+            sum = sumIn.get()
+            try:
+                sum = sum.replace("x", "*")
+                sum = sum.replace("^", "**")
+                sum = sum.replace("g", "9.80665")
+                sum = sum.replace("h", "6.62607004e-34")
+                sum = sum.replace("e", "math.e")
+                sum = sum.replace("pi", "math.pi")
+                sum = sum.replace("sin(", "math.sin(")
+                sum = sum.replace("cos(", "math.cos(")
+                sum = sum.replace("tan(", "math.tan(")
+                if self.ans:
+                    sum = sum.replace("ans", self.ans)
+                exec("self.ans = str("+sum+")")
+                ansLable.config(text="Answer = "+self.ans)
+            except:
+                ansLable.config(text="Answer = Stupid")
+        
+        def SD():
+            if ansLable.cget("text").find(".") == -1:
+                ansLable.config(text="Answer = "+self.ans)
+            else:
+                ansLable.config(text="Answer = "+str(Fraction(Decimal(self.ans))))
+
+        def brackets():
+            
+            temp = sumIn.get()
+
+            temp = temp.replace("**", "^")
+            temp = temp.replace("*", "x")
+            if temp[0] != "(":
+                temp = temp[:0] + "(" +temp[0:]
+                n = len(temp)
+                temp = temp[:n] + ")" +temp[n:]
+            
+            i = 0
+            while i < len(sumIn.get()):
+
+                pos1 = temp.find("+")
+                if pos1 != -1 and temp[pos1-1] != ")":
+                    temp = temp[:pos1] + ")" +temp[pos1:]
+                    temp = temp[:pos1+2] + "(" +temp[pos1+2:]
+
+                pos2 = temp.find("-")
+                if pos2 != -1 and temp[pos2-1] != ")":
+                    temp = temp[:pos2] + ")" +temp[pos2:]
+                    temp = temp[:pos2+2] + "(" +temp[pos2+2:]
+
+                pos3 = temp.find("x")
+                if pos3 != -1 and temp[pos3-1] != ")":
+                    temp = temp[:pos3] + ")" +temp[pos3:]
+                    temp = temp[:pos3+2] + "(" +temp[pos3+2:]
+                
+                pos4 = temp.find("/")
+                if pos4 != -1 and temp[pos4-1] != ")":
+                    temp = temp[:pos4] + ")" +temp[pos4:]
+                    temp = temp[:pos4+2] + "(" +temp[pos4+2:]
+
+                i += 1
+
+            sumIn.delete(0, tk.END)
+            sumIn.insert(0, temp)
+
+
+        def clear():
+            sumIn.delete(0, tk.END)
+            ansLable.config(text="")
+
+        def back():
+            clear()
+            controller.show_frame(StartPage)
+
+        self.ans = None
+        #self.degrees = tk.BooleanVar()
+        #tick = tk.Checkbutton(self, text="Degrees", variable=self.degrees, command=lambda: check_box(self))
+        #tick.grid(row=0, column=1)
+        ttk.Separator(self, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
+        sumIn = ttk.Entry(self, width="25", font=(12),)
+        sumIn.grid(row=2, column=0, padx = 20, pady = 2)
+        Lable1 = ttk.Label(self, text="(Don't forget brackets)", font=("Areial",7)).grid(row = 3, column=0, sticky="N")
+        ansLable = ttk.Label(self, text="", font=(11))
+        ansLable.grid(row=4, column=0,pady=30, padx=5, columnspan=2, sticky="W") 
+        button2 = ttk.Button(self, text="=", command=lambda: enter(self, sumIn)).grid(row=2, column=1, sticky="W")
+        button1 = ttk.Button(self, text="AC", command=clear).grid(row=3, column=1, pady=15, sticky="W")
+        button4 = ttk.Button(self, text="S <-> D", command=SD).grid(row=5, column=1)
+        button5 = ttk.Button(self, text="Backets", command=brackets).grid(row=6, column=1)
+        button3 = ttk.Button(self, text="Back", command=back).grid(row=5, column=0, pady=35, padx=20, sticky="W")
+
+
 
 
 class SUVATPage(tk.Frame):
