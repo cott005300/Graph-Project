@@ -6,16 +6,17 @@ from typing import Text
 import matplotlib
 import sys
 import os
-from tkinter import simpledialog
+from tkinter import PhotoImage, Scale, Scrollbar, Toplevel, simpledialog
 
 import numpy
+from PIL import Image, ImageTk
 
 from sort import sort
 from SUVAT_maths import SUVAT
 #from serach import search
 from make_list import make_list
 
-from numpy import select
+from numpy import imag, select
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -919,7 +920,7 @@ class MBsetPage(tk.Frame):
             MB_colours_red = [[80,"indigo"],[45,"darkblue"],[35,"blue"],[32,"dodgerblue"],[30,"steelblue"],[28,"cadetblue"],[25,"mediumaquamarine"],[15,"mediumseagreen"],[14,"seagreen"],[13,"darkgreen"],[12,"green"],[11,"forestgreen"],[10,"olivedrab"],[9,"olive"],[8,"darkkhaki"],[7,"khaki"],[6,"gold"],[5,"orange"],[4,"darkorange"],[3,"orangered"],[2,"red"],[1,"brown"],[0,"darkred"]  ]
             MB_colours_blue = [ [50,"aquamarine"],[40,"turquoise"],[30,"mediumturquoise"],[25,"darkturquoise"],[18,"deepskyblue"],[15,"dodgerblue"],[10,"cornflowerblue"],[7,"royalblue"],[4,"blue"],[3,"mediumblue"],[2,"darkblue"],[1,"navy"],[0,"midnightblue"] ]
             colour_before = ""
-            y = 0
+            y = -limit
             X = -limit - res
             Yprev = 0
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
@@ -1137,7 +1138,7 @@ class calculator(tk.Frame):
         #    else:
         #        self.degrees.set(False)
 
-        def enter(self, sumIn):
+        def enter(sumIn):
             sum = sumIn.get()
             try:
                 sum = sum.replace("x", "*")
@@ -1210,24 +1211,44 @@ class calculator(tk.Frame):
             clear()
             controller.show_frame(StartPage)
 
+
+        tabContorle = ttk.Notebook(self)
+        tab1 = ttk.Frame(tabContorle)
+        tab2 = ttk.Frame(tabContorle)
+        tab3 = ttk.Frame(tabContorle)
+        tabContorle.add(tab1, text="Calculator")
+        tabContorle.add(tab2, text="Constants")
+        tabContorle.add(tab3, text="Formulas")
+        tabContorle.pack(expand=1, fill="both")
+
         self.ans = None
         #self.degrees = tk.BooleanVar()
         #tick = tk.Checkbutton(self, text="Degrees", variable=self.degrees, command=lambda: check_box(self))
         #tick.grid(row=0, column=1)
-        ttk.Separator(self, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
-        sumIn = ttk.Entry(self, width="25", font=(12),)
+        ttk.Separator(tab1, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
+        sumIn = ttk.Entry(tab1, width="25", font=(12),)
         sumIn.grid(row=2, column=0, padx = 20, pady = 2)
-        Lable1 = ttk.Label(self, text="(Don't forget brackets)", font=("Areial",7)).grid(row = 3, column=0, sticky="N")
-        ansLable = ttk.Label(self, text="", font=(11))
+        Lable1 = ttk.Label(tab1, text="(Don't forget brackets)", font=("Areial",7)).grid(row = 3, column=0, sticky="N")
+        ansLable = ttk.Label(tab1, text="", font=(11))
         ansLable.grid(row=4, column=0,pady=30, padx=5, columnspan=2, sticky="W") 
-        button2 = ttk.Button(self, text="=", command=lambda: enter(self, sumIn)).grid(row=2, column=1, sticky="W")
-        button1 = ttk.Button(self, text="AC", command=clear).grid(row=3, column=1, pady=15, sticky="W")
-        button4 = ttk.Button(self, text="S <-> D", command=SD).grid(row=5, column=1)
-        button5 = ttk.Button(self, text="Backets", command=brackets).grid(row=6, column=1)
-        button3 = ttk.Button(self, text="Back", command=back).grid(row=5, column=0, pady=35, padx=20, sticky="W")
+        ttk.Button(tab1, text="=", command=lambda: enter(sumIn)).grid(row=2, column=1, sticky="W")
+        ttk.Button(tab1, text="AC", command= clear).grid(row=3, column=1, pady=15, sticky="W")
+        ttk.Button(tab1, text="S ↔ D", command= SD).grid(row=5, column=1, sticky="W")
+        ttk.Button(tab1, text="Backets", command=brackets).grid(row=6, column=1, sticky="W")
+        ttk.Button(tab1, text="Back", command=back).grid(row=5, column=0, pady=35, padx=20, sticky="W")
 
+        label2 = ttk.Label(tab2, font=(10), text="g = 9.80665 \npi = "+str(math.pi)+\
+                                                "\ne = "+str(math.e)+" \nh = 6.62607004e-34\
+                                                \nsin, cos and tan (in radians) \nans (for previus answer)\
+                                                \n\n(You can use these in the calculator) ").pack(padx=50, pady = 30)    
 
-
+        image1 = Image.open("all equations.png")
+        resize_image = image1.resize((340, 410))
+        img= ImageTk.PhotoImage(master=tab3, image=resize_image)
+        label1 = Label(tab3, image=img)
+        label1.image = img
+        label1.pack()
+        
 
 class SUVATPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -1334,6 +1355,7 @@ class checkVars():
         global org_graph
         graph = graphIn.get()
         org_graph = "y = " + graphIn.get()
+        org_graph = org_graph.replace("pi", "π")
         #a = aIn.get()
         #b = bIn.get()
         #c = cIn.get()
@@ -1378,6 +1400,12 @@ class checkVars():
             if graph[z] == "-" and graph[z-1] != " ":
                 if not(graph[z-1] == "*" and graph[z-2] == "*"):    #this is for negative powers
                     graph = graph[:z] + " " + graph[z:]
+
+        graph = graph.replace("e", "math.e")
+        graph = graph.replace("pi", "math.pi")
+        graph = graph.replace("sin(", "math.sin(")
+        graph = graph.replace("cos(", "math.cos(")
+        graph = graph.replace("tan(", "math.tan(")
         #try:
          #   a = float(a)
           #  b = float(b)
