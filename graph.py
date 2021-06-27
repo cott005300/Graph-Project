@@ -418,47 +418,88 @@ class simulPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        def check_box(tab):
+            if tab == "tab1":
+                if Draw.get() == False:
+                    Draw.set(True)
+                else:
+                    Draw.set(False)
+            elif tab == "tab2":
+                if Draw2.get() == False:
+                    Draw2.set(True)
+                else:
+                    Draw2.set(False)
+
+
         def button_command(tab):
+            global graph
+            global org_graph
+
             if tab == "tab1":
                 x1 = X1_pointin.get()
                 y1 = Y1_pointin.get()
-                ans1 = ans1_pointin.get()
+                c1 = const1_pointin.get()
                 x2 = X2_pointin.get()
                 y2 = Y2_pointin.get()
-                ans2 = ans2_pointin.get()
+                c2 = const2_pointin.get()
                 z1 = 0
+
             elif tab == "tab2":
-                x1 = X1_pointin2.get()
-                y1 = Y1_pointin2.get()
-                z1 = Z1_pointin2.get()
-                ans1 = 0
-                ans2 = 0
+                x1 = X1_pointin2.get()  #x squared
+                y1 = Y1_pointin2.get()  #x
+                z1 = Z1_pointin2.get()  #constant
+                c1 = 0
+                c2 = 0
                 x2 = X2_pointin2.get()
                 y2 = Y2_pointin2.get()
 
             try:
                 x1 = float(x1)
                 y1 = float(y1)
-                ans1 = float(ans1)
+                z1 = float(z1)
+                c1 = float(c1)
                 x2 = float(x2)
                 y2 = float(y2)
-                z1 = float(z1)
-                ans2 = float(ans2)
+                c2 = float(c2)
             except:
                 popupmesg("!", "Can't take that")
                 return
             if tab == "tab1":
-                solve_lin(x1, x2, y1, y2, ans1, ans2)
+                X, Y = solve_lin(x1, c1, y1, x2, c2, y2)
+                if Draw.get() == True:
+                    graph = str(x1/y1)+"*x +"+str(c1/y1)
+                    org_graph = str(y1)+"y="+str(x1)+"x +"+str(c1)
+                    draw.polynomial(draw, False)
+                    graph = str(x2/y2)+"*x +"+str(c2/y2)
+                    org_graph = str(y2)+"y="+str(x2)+"x +"+str(c2)
+                    draw.polynomial(draw, False)
+                    draw.point(round(X, 2), round(Y,2))
+
             elif tab == "tab2":
                 solve_quad(x1, y1, z1,  x2, y2)
+                if Draw2.get() == True:
+                    graph = str(x1)+"*(x)**2 +"+str(y1)+"*x +"+str(z1)
+                    org_graph = "y ="+str(x1)+"x² +"+str(y1)+"x +"+str(z1)
+                    draw.polynomial(draw, False)
+                    graph = str(x2)+"*x +"+str(y2)
+                    org_graph = "y="+str(x2)+"x +"+str(y2)
+                    draw.polynomial(draw, False)
+                    #draw.point(round(X, 2), round(Y,2))
+            
 
-        def solve_lin(x1, x2, y1, y2, ans1, ans2):
-            A = np.array([[x1,y1], [x2,y2]])
-            B = np.array([ans1,ans2])
-            D = np.linalg.inv(A)
-            E = np.dot(D,B)
-            Xsolution.config(text="X = "+str(E[0]))
-            Ysolution.config(text="Y = "+str(E[1]))
+        def solve_lin(a, b, c, d, e, f):
+            #A = np.array([[x1,-y1], [x2,-y2]])
+            #B = np.array([-c1,-c2])
+            #D = np.linalg.inv(A)
+            #E = np.dot(D,B)
+            #Xsolution.config(text="X = "+str(E[0]))
+            #Ysolution.config(text="Y = "+str(E[1]))
+            x,y = sympy.symbols('x,y')
+            eq1 = sympy.Eq(a*x + b, c*y)
+            eq2 = sympy.Eq(d*x + e, f*y)
+            result = sympy.solve([eq1,eq2],(x,y))
+            Xsolution.config(text=str(result))
+            return result[x], result[y]
 
         def solve_quad(a, b, c, d, e):
             x,y = sympy.symbols('x,y')
@@ -467,7 +508,6 @@ class simulPage(tk.Frame):
             result = sympy.solve([eq1,eq2],(x,y))
             solution2.config(text="Coords or intersection:\n"+str(result[0])+"\n"+str(result[1]))      #ext(iter(result.values()))
             
-
             
         def clear(tab):
             if tab == "tab1" or tab == "back":
@@ -475,10 +515,12 @@ class simulPage(tk.Frame):
                 X2_pointin.delete(0, tk.END)
                 Y1_pointin.delete(0, tk.END)
                 Y2_pointin.delete(0, tk.END)
-                ans1_pointin.delete(0, tk.END)
-                ans2_pointin.delete(0, tk.END)
+                const1_pointin.delete(0, tk.END)
+                const2_pointin.delete(0, tk.END)
                 Xsolution.config(text="")
-                Ysolution.config(text="")
+                Y1_pointin.insert(0, "1")
+                Y2_pointin.insert(0, "1")
+
             if tab == "tab2" or tab == "back":
                 X1_pointin2.delete(0, tk.END)
                 X2_pointin2.delete(0, tk.END)
@@ -501,36 +543,45 @@ class simulPage(tk.Frame):
         tabContorle.add(tab2, text="Quadratic")
         tabContorle.add(tab3, text="System")
         tabContorle.pack(expand=1, fill="both")
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
+        canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
 
-        ################# tab 1 #####################################
+        ##################### tab 1 #####################################
         ttk.Label(tab1, text="X", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5)
-        ttk.Label(tab1, text="Y", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5)
+        ttk.Label(tab1, text="Const", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5)
+        ttk.Label(tab1, text="Y", font=("Verdana", 9)).grid(row=0,column=4, padx=5, pady=5)
         ttk.Label(tab1, text="=", font=("Verdana", 9)).grid(row=1,column=3, padx=8, pady=5)
         ttk.Label(tab1, text="=", font=("Verdana", 9)).grid(row=2,column=3, padx=8, pady=5)
         X1_pointin = ttk.Entry(tab1, width="10")
         Y1_pointin = ttk.Entry(tab1, width="10")
-        ans1_pointin = ttk.Entry(tab1, width="10")
+        const1_pointin = ttk.Entry(tab1, width="10")
         X2_pointin = ttk.Entry(tab1, width="10")
         Y2_pointin = ttk.Entry(tab1, width="10")
-        ans2_pointin = ttk.Entry(tab1, width="10")
+        const2_pointin = ttk.Entry(tab1, width="10")
         Xsolution = ttk.Label(tab1, text="")
-        Ysolution = ttk.Label(tab1, text="")
         ttk.Separator(tab1, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
-        ttk.Button(tab1, text="Enter", command= lambda: button_command("tab1")).grid(row=5, column=4, pady=20)
-        ttk.Button(tab1, text="Clear", command=lambda: clear("tab1")).grid(row=5, column=3)
-        ttk.Button(tab1, text="Back", command=back).grid(row=5, column=1)
+        Draw = tk.BooleanVar()
+        tick = tk.Checkbutton(tab1, text="Draw",onvalue=True, offvalue=False, variable=Draw, command=lambda: check_box("tab1"))
+        ttk.Button(tab1, text="Enter", command= lambda: button_command("tab1")).grid(row=6, column=4, pady=20)
+        ttk.Button(tab1, text="Clear", command=lambda: clear("tab1")).grid(row=6, column=3)
+        ttk.Button(tab1, text="Back", command=back).grid(row=6, column=1)
   
         X1_pointin.grid(row=1,column=1, padx=5, pady=5)
-        Y1_pointin.grid(row=1,column=2, padx=5, pady=5)
-        ans1_pointin.grid(row=1,column=4, padx=5, pady=5)
+        Y1_pointin.grid(row=1,column=4, padx=5, pady=5)
+        const1_pointin.grid(row=1,column=2, padx=5, pady=5)
         X2_pointin.grid(row=2,column=1, padx=5, pady=5)
-        Y2_pointin.grid(row=2,column=2, padx=5, pady=5)
-        ans2_pointin.grid(row=2,column=4, padx=5,pady=5)
+        Y2_pointin.grid(row=2,column=4, padx=5, pady=5)
+        const2_pointin.grid(row=2,column=2, padx=5,pady=5)
+        tick.grid(row=5 , column= 4)
         Xsolution.grid(row=3 , column=1, columnspan=3, pady=8, sticky="W")
-        Ysolution.grid(row=4 , column=1, columnspan=3, pady=8, sticky="W")
-########################################################################
 
-########################## tab 2 #######################################
+        Y1_pointin.insert(0, "1")
+        Y2_pointin.insert(0, "1")
+##########################################################################
+
+########################## tab 2 #########################################
         ttk.Label(tab2, text="X²", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5, sticky="S")
         ttk.Label(tab2, text="X", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5, sticky="S")
         ttk.Label(tab2, text="Const", font=("Verdana", 9)).grid(row=0,column=3, padx=5, pady=5, sticky="S")
@@ -545,9 +596,12 @@ class simulPage(tk.Frame):
         Y2_pointin2 = ttk.Entry(tab2, width="10")
         solution2 = ttk.Label(tab2, text="")
         ttk.Separator(tab2, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
-        ttk.Button(tab2, text="Enter", command= lambda: button_command("tab2")).grid(row=6, column=4, pady=20)
-        ttk.Button(tab2, text="Clear", command=lambda: clear("tab2")).grid(row=6, column=3)
-        ttk.Button(tab2, text="Back", command=back).grid(row=6, column=1)
+        Draw2 = tk.BooleanVar()
+        tick2 = tk.Checkbutton(tab2, text="Draw",onvalue=True, offvalue=False, variable=Draw2, command=lambda: check_box("tab2"))
+        ttk.Button(tab2, text="Enter", command= lambda: button_command("tab2")).grid(row=7, column=4, pady=20)
+        ttk.Button(tab2, text="Clear", command=lambda: clear("tab2")).grid(row=7, column=3)
+        ttk.Button(tab2, text="Back", command=back).grid(row=7, column=1)
+        tick2.grid(row=6 , column= 4)
   
         X1_pointin2.grid(row=1,column=1, padx=5, pady=5)
         Y1_pointin2.grid(row=1,column=2, padx=5, pady=5)
@@ -555,7 +609,7 @@ class simulPage(tk.Frame):
         X2_pointin2.grid(row=3,column=1, padx=5, pady=5)
         Y2_pointin2.grid(row=3,column=2, padx=5, pady=5)
         solution2.grid(row=4 , column=1, columnspan=4, pady=8, sticky="W")
-######################################################################
+##########################################################################
 
 
 class Scatter(tk.Frame):
