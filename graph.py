@@ -485,8 +485,7 @@ class simulPage(tk.Frame):
             eq2 = sympy.Eq(d*x + e, y)
             result = sympy.solve([eq1,eq2],(x,y))
             solution2.config(text="Coords or intersection:\n"+str(result[0])+"\n"+str(result[1]))      #ext(iter(result.values()))
-            
-            
+                        
         def clear(tab):
             if tab == "tab1" or tab == "back":
                 X1_pointin.delete(0, tk.END)
@@ -509,11 +508,6 @@ class simulPage(tk.Frame):
                 solution2.config(text="")
                 Draw2.set(False)
 
-
-        def back():
-            clear("back")
-            controller.show_frame(PageTwo)
-                
 
         tabContorle = ttk.Notebook(self)
         tab1 = ttk.Frame(tabContorle)
@@ -546,7 +540,7 @@ class simulPage(tk.Frame):
         tick = tk.Checkbutton(tab1, text="Draw",onvalue=True, offvalue=False, variable=Draw, command=lambda: check_box("tab1"))
         ttk.Button(tab1, text="Enter", command= lambda: button_command("tab1")).grid(row=6, column=4, pady=20)
         ttk.Button(tab1, text="Clear", command=lambda: clear("tab1")).grid(row=6, column=3)
-        ttk.Button(tab1, text="Back", command=back).grid(row=6, column=1)
+        ttk.Button(tab1, text="Back", command=lambda: controller.show_frame(PageTwo)).grid(row=6, column=1)
   
         X1_pointin.grid(row=1,column=1, padx=5, pady=5)
         Y1_pointin.grid(row=1,column=4, padx=5, pady=5)
@@ -580,7 +574,7 @@ class simulPage(tk.Frame):
         tick2 = tk.Checkbutton(tab2, text="Draw",onvalue=True, offvalue=False, variable=Draw2, command=lambda: check_box("tab2"))
         ttk.Button(tab2, text="Enter", command= lambda: button_command("tab2")).grid(row=7, column=4, pady=20)
         ttk.Button(tab2, text="Clear", command=lambda: clear("tab2")).grid(row=7, column=3)
-        ttk.Button(tab2, text="Back", command=back).grid(row=7, column=1)
+        ttk.Button(tab2, text="Back", command=controller.show_frame(PageTwo)).grid(row=7, column=1)
         tick2.grid(row=6 , column= 4)
   
         X1_pointin2.grid(row=1,column=1, padx=5, pady=5)
@@ -1084,10 +1078,16 @@ class MBsetPage(tk.Frame):
             global x, y
             global limit
             if self.red.get() == 0 and self.blue.get() == 0:
-                popupmesg("!","Please select a colour")
+                tick_red.flash()
+                tick_blue.flash()
+                tick_red.flash()
+                tick_blue.flash()
                 return
             if self.red.get() == 1 and self.blue.get() == 1:
-                popupmesg("!","Please select 1 colour")
+                tick_red.flash()
+                tick_blue.flash()
+                tick_red.flash()
+                tick_blue.flash()
                 return
 
             if self.red.get() == 1:
@@ -1338,6 +1338,7 @@ class calculator(tk.Frame):
                 sum = sum.replace("h", "6.62607004e-34")
                 sum = sum.replace("e", "math.e")
                 sum = sum.replace("pi", "math.pi")
+            
                 if self.ans:
                     sum = sum.replace("ans", self.ans)
 
@@ -1450,8 +1451,9 @@ class calculator(tk.Frame):
         self.CosAns = 0
         self.TanAns = 0
         self.degrees = tk.BooleanVar()
-        tick = tk.Checkbutton(tab1, text="Degrees", variable=self.degrees, command=lambda: check_box(self))
+        tick = tk.Checkbutton(tab1, text="Degrees", variable=self.degrees, onvalue=True, offvalue=False,  command=lambda: check_box(self))
         tick.grid(row=0, column=1)
+        tick.select()
         ttk.Separator(tab1, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
         sumIn = ttk.Entry(tab1, width="25", font=(12),)
         sumIn.grid(row=2, column=0, padx = 20, pady = 2)
@@ -1462,11 +1464,11 @@ class calculator(tk.Frame):
         ttk.Button(tab1, text="AC", command= clear).grid(row=3, column=1, pady=15, sticky="W")
         ttk.Button(tab1, text="S ↔ D", command= SD).grid(row=5, column=1, sticky="W")
         ttk.Button(tab1, text="Backets", command=brackets).grid(row=6, column=1, sticky="W")
-        ttk.Button(tab1, text="Back", command=lambda: back(controller.show_frame(StartPage))).grid(row=5, column=0, pady=35, padx=20, sticky="W")
+        ttk.Button(tab1, text="Back", command=lambda: controller.show_frame(StartPage)).grid(row=5, column=0, pady=35, padx=20, sticky="W")
 
         label2 = ttk.Label(tab2, font=(10), text="g = 9.80665 \npi = "+str(math.pi)+\
                                                 "\ne = "+str(math.e)+" \nh = 6.62607004e-34\
-                                                \nsin, cos and tan (in radians) \nans (for previus answer)\
+                                                \nsin, cos and tan \nans (for previus answer)\
                                                 \n\n(You can use these in the calculator) ").pack(padx=50, pady = 30)    
 
         image1 = Image.open("all equations.png")
@@ -1475,8 +1477,7 @@ class calculator(tk.Frame):
         label1 = Label(tab3, image=img)
         label1.image = img
         label1.pack()
-        self.degrees.set(True)
-        
+                
 
 class SUVATPage(tk.Frame):
     def __init__(self, parent, controller):
