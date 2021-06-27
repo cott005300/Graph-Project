@@ -14,7 +14,6 @@ from PIL import Image, ImageTk
 
 from sort import sort
 from SUVAT_maths import SUVAT
-#from serach import search
 from make_list import make_list
 
 from numpy import imag, select
@@ -45,7 +44,6 @@ l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
 
-#a, b, c, d = "", "", "", ""
 # σ Σ x̄ ²
 graph = ""
 org_graph = ""
@@ -458,8 +456,8 @@ class simulPage(tk.Frame):
             elif tab == "tab2":
                 solve_quad(x1, y1, c1,  x2, y2)
                 if Draw2.get() == True:
-                    graph = str(x1)+"*(x)**2 +"+str(y1)+"*x +"+str(z1)
-                    org_graph = "y ="+str(x1)+"x² +"+str(y1)+"x +"+str(z1)
+                    graph = str(x1)+"*(x)**2 +"+str(y1)+"*x +"+str(c1)
+                    org_graph = "y ="+str(x1)+"x² +"+str(y1)+"x +"+str(c1)
                     draw.polynomial(draw, False)
                     graph = str(x2)+"*x +"+str(y2)
                     org_graph = "y="+str(x2)+"x +"+str(y2)
@@ -1325,11 +1323,11 @@ class calculator(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        #def check_box(self):
-        #    if self.degrees.get() == False:
-        #        self.degrees.set(True)
-        #    else:
-        #        self.degrees.set(False)
+        def check_box(self):
+            if self.degrees.get() == False:
+                self.degrees.set(True)
+            else:
+                self.degrees.set(False)
 
         def enter(sumIn):
             sum = sumIn.get()
@@ -1340,16 +1338,54 @@ class calculator(tk.Frame):
                 sum = sum.replace("h", "6.62607004e-34")
                 sum = sum.replace("e", "math.e")
                 sum = sum.replace("pi", "math.pi")
+                if self.ans:
+                    sum = sum.replace("ans", self.ans)
+
+                if self.degrees.get() == True:      #performs the calculation in degrees
+                    self.SinAns = sum.find("sin(")      #have to convert angle to radians before calculation
+                    self.CosAns = sum.find("cos(")
+                    self.TanAns = sum.find("tan(")
+                    if self.SinAns != -1:
+                        calc = sctCalc(sum, self.SinAns+3, len(sum))
+                        exec("self.SinAns = "+calc)
+                        self.SinAns = np.deg2rad(float(self.SinAns))
+                        sum = sum.replace(str(calc), "("+str(self.SinAns)+")")
+
+                    if self.CosAns != -1:
+                        calc = sctCalc(sum, self.CosAns+3, len(sum))
+                        exec("self.CosAns = "+calc)
+                        self.CosAns = np.deg2rad(float(self.CosAns))
+                        sum = sum.replace(str(calc), "("+str(self.CosAns)+")")
+
+                    if self.TanAns != -1:
+                        calc = sctCalc(sum, self.TanAns+3, len(sum))
+                        exec("self.TanAns = "+calc)
+                        self.TanAns = np.deg2rad(float(self.TanAns))
+                        sum = sum.replace(str(calc), "("+str(self.TanAns)+")")
                 sum = sum.replace("sin(", "math.sin(")
                 sum = sum.replace("cos(", "math.cos(")
                 sum = sum.replace("tan(", "math.tan(")
-                if self.ans:
-                    sum = sum.replace("ans", self.ans)
+
                 exec("self.ans = str("+sum+")")
                 ansLable.config(text="Answer = "+self.ans)
+
             except:
                 ansLable.config(text="Answer = Stupid")
-        
+
+
+        def sctCalc(sum, StartPos, length):
+            calc = ""
+            brkt = 0
+            for i in range(StartPos, length):
+                if sum[i] == "(":
+                    brkt += 1
+                if sum[i] == ")":
+                    brkt -=1
+                if brkt < 0:
+                    break
+                calc += sum[i]
+            return calc
+
         def SD():
             if ansLable.cget("text").find(".") == -1:
                 ansLable.config(text="Answer = "+self.ans)
@@ -1395,15 +1431,10 @@ class calculator(tk.Frame):
             sumIn.delete(0, tk.END)
             sumIn.insert(0, temp)
 
-
         def clear():
             sumIn.delete(0, tk.END)
             ansLable.config(text="")
-
-        def back():
-            clear()
-            controller.show_frame(StartPage)
-
+            
 
         tabContorle = ttk.Notebook(self)
         tab1 = ttk.Frame(tabContorle)
@@ -1415,9 +1446,12 @@ class calculator(tk.Frame):
         tabContorle.pack(expand=1, fill="both")
 
         self.ans = None
-        #self.degrees = tk.BooleanVar()
-        #tick = tk.Checkbutton(self, text="Degrees", variable=self.degrees, command=lambda: check_box(self))
-        #tick.grid(row=0, column=1)
+        self.SinAns = 0
+        self.CosAns = 0
+        self.TanAns = 0
+        self.degrees = tk.BooleanVar()
+        tick = tk.Checkbutton(tab1, text="Degrees", variable=self.degrees, command=lambda: check_box(self))
+        tick.grid(row=0, column=1)
         ttk.Separator(tab1, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
         sumIn = ttk.Entry(tab1, width="25", font=(12),)
         sumIn.grid(row=2, column=0, padx = 20, pady = 2)
@@ -1428,7 +1462,7 @@ class calculator(tk.Frame):
         ttk.Button(tab1, text="AC", command= clear).grid(row=3, column=1, pady=15, sticky="W")
         ttk.Button(tab1, text="S ↔ D", command= SD).grid(row=5, column=1, sticky="W")
         ttk.Button(tab1, text="Backets", command=brackets).grid(row=6, column=1, sticky="W")
-        ttk.Button(tab1, text="Back", command=back).grid(row=5, column=0, pady=35, padx=20, sticky="W")
+        ttk.Button(tab1, text="Back", command=lambda: back(controller.show_frame(StartPage))).grid(row=5, column=0, pady=35, padx=20, sticky="W")
 
         label2 = ttk.Label(tab2, font=(10), text="g = 9.80665 \npi = "+str(math.pi)+\
                                                 "\ne = "+str(math.e)+" \nh = 6.62607004e-34\
@@ -1441,6 +1475,7 @@ class calculator(tk.Frame):
         label1 = Label(tab3, image=img)
         label1.image = img
         label1.pack()
+        self.degrees.set(True)
         
 
 class SUVATPage(tk.Frame):
