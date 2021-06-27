@@ -418,14 +418,23 @@ class simulPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        def button_command():
-
-            x1 = X1_pointin.get()
-            y1 = Y1_pointin.get()
-            ans1 = ans1_pointin.get()
-            x2 = X2_pointin.get()
-            y2 = Y2_pointin.get()
-            ans2 = ans2_pointin.get()
+        def button_command(tab):
+            if tab == "tab1":
+                x1 = X1_pointin.get()
+                y1 = Y1_pointin.get()
+                ans1 = ans1_pointin.get()
+                x2 = X2_pointin.get()
+                y2 = Y2_pointin.get()
+                ans2 = ans2_pointin.get()
+                z1 = 0
+            elif tab == "tab2":
+                x1 = X1_pointin2.get()
+                y1 = Y1_pointin2.get()
+                z1 = Z1_pointin2.get()
+                ans1 = 0
+                ans2 = 0
+                x2 = X2_pointin2.get()
+                y2 = Y2_pointin2.get()
 
             try:
                 x1 = float(x1)
@@ -433,13 +442,17 @@ class simulPage(tk.Frame):
                 ans1 = float(ans1)
                 x2 = float(x2)
                 y2 = float(y2)
+                z1 = float(z1)
                 ans2 = float(ans2)
-
             except:
-                #popupmesg("!", "Can't take that")
-                #return
-                pass
+                popupmesg("!", "Can't take that")
+                return
+            if tab == "tab1":
+                solve_lin(x1, x2, y1, y2, ans1, ans2)
+            elif tab == "tab2":
+                solve_quad(x1, y1, z1,  x2, y2)
 
+        def solve_lin(x1, x2, y1, y2, ans1, ans2):
             A = np.array([[x1,y1], [x2,y2]])
             B = np.array([ans1,ans2])
             D = np.linalg.inv(A)
@@ -447,75 +460,102 @@ class simulPage(tk.Frame):
             Xsolution.config(text="X = "+str(E[0]))
             Ysolution.config(text="Y = "+str(E[1]))
 
-            a = x1
-            b = y1
-            c = x2
-            d = y2
+        def solve_quad(a, b, c, d, e):
             x,y = sympy.symbols('x,y')
-            eq1 = sympy.Eq(a*x + b*y, ans1)
-            eq2 = sympy.Eq(c*x + d*y, ans2)
+            eq1 = sympy.Eq(a*x**2 + b*x + c, y)
+            eq2 = sympy.Eq(d*x + e, y)
             result = sympy.solve([eq1,eq2],(x,y))
-            #Xsolution.config(text=str(result))      #ext(iter(result.values()))
+            solution2.config(text="Coords or intersection:\n"+str(result[0])+"\n"+str(result[1]))      #ext(iter(result.values()))
             
 
             
-        def clear():
-
-            X1_pointin.delete(0, tk.END)
-            X2_pointin.delete(0, tk.END)
-            Y1_pointin.delete(0, tk.END)
-            Y2_pointin.delete(0, tk.END)
-            ans1_pointin.delete(0, tk.END)
-            ans2_pointin.delete(0, tk.END)
-            Xsolution.config(text="")
-            Ysolution.config(text="")
+        def clear(tab):
+            if tab == "tab1" or tab == "back":
+                X1_pointin.delete(0, tk.END)
+                X2_pointin.delete(0, tk.END)
+                Y1_pointin.delete(0, tk.END)
+                Y2_pointin.delete(0, tk.END)
+                ans1_pointin.delete(0, tk.END)
+                ans2_pointin.delete(0, tk.END)
+                Xsolution.config(text="")
+                Ysolution.config(text="")
+            if tab == "tab2" or tab == "back":
+                X1_pointin2.delete(0, tk.END)
+                X2_pointin2.delete(0, tk.END)
+                Y1_pointin2.delete(0, tk.END)
+                Y2_pointin2.delete(0, tk.END)
+                Z1_pointin2.delete(0, tk.END)
+                solution2.config(text="")
 
 
         def back():
-            clear()
+            clear("back")
             controller.show_frame(PageTwo)
                 
 
+        tabContorle = ttk.Notebook(self)
+        tab1 = ttk.Frame(tabContorle)
+        tab2 = ttk.Frame(tabContorle)
+        tab3 = ttk.Frame(tabContorle)
+        tabContorle.add(tab1, text="Linear")
+        tabContorle.add(tab2, text="Quadratic")
+        tabContorle.add(tab3, text="System")
+        tabContorle.pack(expand=1, fill="both")
 
-        Xlabel = ttk.Label(self, text="X", font=("Verdana", 9))
-        Ylabel = ttk.Label(self, text="Y", font=("Verdana", 9))
-        ans1label = ttk.Label(self, text="=", font=("Verdana", 9))
-        ans2label = ttk.Label(self, text="=", font=("Verdana", 9))
-
-        X1_pointin = ttk.Entry(self, width="10")
-        Y1_pointin = ttk.Entry(self, width="10")
-        ans1_pointin = ttk.Entry(self, width="10")
-        X2_pointin = ttk.Entry(self, width="10")
-        Y2_pointin = ttk.Entry(self, width="10")
-        ans2_pointin = ttk.Entry(self, width="10")
-        Xsolution = ttk.Label(self, text="")
-        Ysolution = ttk.Label(self, text="")
-
-        ttk.Separator(self, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
-
-        button1 = ttk.Button(self, text="Enter", command= button_command)
-        CLear = ttk.Button(self, text="Clear", command=clear).grid(row=5, column=3)
-        Back = ttk.Button(self, text="Back", command=back).grid(row=5, column=1)
-
-        Xlabel.grid(row=0,column=1, padx=5, pady=5)
-        Ylabel.grid(row=0,column=2, padx=5, pady=5)
-        ans1label.grid(row=1,column=3, padx=8, pady=5)
-        ans2label.grid(row=2,column=3, padx=8, pady=5)
-
+        ################# tab 1 #####################################
+        ttk.Label(tab1, text="X", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5)
+        ttk.Label(tab1, text="Y", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5)
+        ttk.Label(tab1, text="=", font=("Verdana", 9)).grid(row=1,column=3, padx=8, pady=5)
+        ttk.Label(tab1, text="=", font=("Verdana", 9)).grid(row=2,column=3, padx=8, pady=5)
+        X1_pointin = ttk.Entry(tab1, width="10")
+        Y1_pointin = ttk.Entry(tab1, width="10")
+        ans1_pointin = ttk.Entry(tab1, width="10")
+        X2_pointin = ttk.Entry(tab1, width="10")
+        Y2_pointin = ttk.Entry(tab1, width="10")
+        ans2_pointin = ttk.Entry(tab1, width="10")
+        Xsolution = ttk.Label(tab1, text="")
+        Ysolution = ttk.Label(tab1, text="")
+        ttk.Separator(tab1, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
+        ttk.Button(tab1, text="Enter", command= lambda: button_command("tab1")).grid(row=5, column=4, pady=20)
+        ttk.Button(tab1, text="Clear", command=lambda: clear("tab1")).grid(row=5, column=3)
+        ttk.Button(tab1, text="Back", command=back).grid(row=5, column=1)
+  
         X1_pointin.grid(row=1,column=1, padx=5, pady=5)
         Y1_pointin.grid(row=1,column=2, padx=5, pady=5)
         ans1_pointin.grid(row=1,column=4, padx=5, pady=5)
         X2_pointin.grid(row=2,column=1, padx=5, pady=5)
         Y2_pointin.grid(row=2,column=2, padx=5, pady=5)
         ans2_pointin.grid(row=2,column=4, padx=5,pady=5)
-
         Xsolution.grid(row=3 , column=1, columnspan=3, pady=8, sticky="W")
         Ysolution.grid(row=4 , column=1, columnspan=3, pady=8, sticky="W")
+########################################################################
 
-        button1.grid(row=5, column=4, pady=20)
-
-
-
+########################## tab 2 #######################################
+        ttk.Label(tab2, text="X²", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5, sticky="S")
+        ttk.Label(tab2, text="X", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5, sticky="S")
+        ttk.Label(tab2, text="Const", font=("Verdana", 9)).grid(row=0,column=3, padx=5, pady=5, sticky="S")
+        ttk.Label(tab2, text="Const", font=("Verdana", 9)).grid(row=2,column=2, padx=5, pady=5, sticky="S")
+        ttk.Label(tab2, text="X", font=("Verdana", 9)).grid(row=2,column=1, padx=5, pady=5, sticky="S")
+        ttk.Label(tab2, text="= Y", font=("Verdana", 9)).grid(row=1,column=4, padx=8, pady=5)
+        ttk.Label(tab2, text="= Y", font=("Verdana", 9)).grid(row=3,column=3, padx=8, pady=5)
+        X1_pointin2 = ttk.Entry(tab2, width="10")
+        Y1_pointin2 = ttk.Entry(tab2, width="10")
+        Z1_pointin2 = ttk.Entry(tab2, width="10")
+        X2_pointin2 = ttk.Entry(tab2, width="10")
+        Y2_pointin2 = ttk.Entry(tab2, width="10")
+        solution2 = ttk.Label(tab2, text="")
+        ttk.Separator(tab2, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
+        ttk.Button(tab2, text="Enter", command= lambda: button_command("tab2")).grid(row=6, column=4, pady=20)
+        ttk.Button(tab2, text="Clear", command=lambda: clear("tab2")).grid(row=6, column=3)
+        ttk.Button(tab2, text="Back", command=back).grid(row=6, column=1)
+  
+        X1_pointin2.grid(row=1,column=1, padx=5, pady=5)
+        Y1_pointin2.grid(row=1,column=2, padx=5, pady=5)
+        Z1_pointin2.grid(row=1,column=3, padx=5, pady=5)
+        X2_pointin2.grid(row=3,column=1, padx=5, pady=5)
+        Y2_pointin2.grid(row=3,column=2, padx=5, pady=5)
+        solution2.grid(row=4 , column=1, columnspan=4, pady=8, sticky="W")
+######################################################################
 
 
 class Scatter(tk.Frame):
