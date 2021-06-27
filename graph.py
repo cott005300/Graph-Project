@@ -76,12 +76,16 @@ def colour_change():
 def popupmesg(title, msg):
     popup = tk.Tk()
     popup.wm_title(title)
-    label = ttk.Label(popup, text=msg, font=("Verdana", 10))
+    root = popup
+    if title[0] == "y":
+        frame = tk.LabelFrame(popup, fg=colours[colour_index-1], text=org_graph)
+        frame.pack(expand=True, fill="both", padx=5, pady=5)
+        root = frame
+    label = ttk.Label(root, text=msg, font=("Verdana", 10))
     label.pack(side="top", fill="x", padx=20, pady=10)
-    B1 = ttk.Button(popup, text="okay", command= popup.destroy)
+    B1 = ttk.Button(root, text="okay", command= popup.destroy)
     B1.pack(pady=10)
     return
-    #popup.mainloop()
 
 def clear_axis(MBset):
     global colour_index
