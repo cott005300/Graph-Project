@@ -8,7 +8,8 @@ import sys
 import os
 from tkinter import PhotoImage, Scale, Scrollbar, Toplevel, simpledialog
 
-import numpy
+import numpy as np
+import sympy
 from PIL import Image, ImageTk
 
 from sort import sort
@@ -28,7 +29,7 @@ from tkinter import Label, ttk
 
 from fractions import Fraction
 from decimal import Decimal
-from math import ceil, degrees, sqrt as sqrt
+from math import ceil, degrees, e, sqrt as sqrt
 sys.setrecursionlimit(5000)
 #print(sys.getrecursionlimit())
 
@@ -51,11 +52,12 @@ org_graph = ""
 graph_type = ""
 roots = []
 turning_points = []
-colours = ["red","orange","lime","green","dodgerblue","blue","pink","purple"]
+colours = ["red","orange","lime","green","dodgerblue","blue","pink","purple","saddlebrown"]
 colour_index = 0
 x = []
 y = []
 x_range = []
+axes_type = None
 
 
 def colour_change():
@@ -65,8 +67,11 @@ def colour_change():
         colour_index +=1
     else:
         colour_index = 0
+
     if colours[colour_index] == "dodgerblue":
         ctrlmenu.entryconfig(0,label="Swap Colour: light blue")
+    elif colours[colour_index] == "saddlebrown":
+        ctrlmenu.entryconfig(0,label="Swap Colour: brown")
     else:
         ctrlmenu.entryconfig(0,label="Swap Colour: "+colours[colour_index])
 
@@ -165,7 +170,7 @@ class main(tk.Tk):                                                          #inh
 
         self.frames = {}
 
-        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, Scatter, BarChartPage, statsPage, SUVATPage, calculator, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
+        for F in (StartPage, PageTwo, GraphPage, sortPage, circlePage, PointPage, wavePage, simulPage, Scatter, BarChartPage, statsPage, SUVATPage, calculator, ComplexPage2, complexPointPage, ComplexCiclePage, half_line_Page,PbisectorPage, MBsetPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")                      #north, south, east, west
@@ -185,17 +190,24 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         def Real():
-            clear_axis(False)
-            s.set_xlabel('X')
-            s.set_ylabel('Y')
-            canvas.draw()
+            global axes_type
+            if axes_type != "Real":
+                clear_axis(False)
+                s.set_xlabel('X')
+                s.set_ylabel('Y')
+                canvas.draw()
             controller.show_frame(PageTwo)
+            axes_type = "Real"
+            
         def Complex():
-            clear_axis(False)
-            s.set_xlabel('Real')
-            s.set_ylabel('Imaginary')
-            canvas.draw()
+            global axes_type
+            if axes_type != "Complex":
+                clear_axis(False)
+                s.set_xlabel('Real')
+                s.set_ylabel('Imaginary')
+                canvas.draw()
             controller.show_frame(ComplexPage2)
+            axes_type = "Complex"
 
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
@@ -227,6 +239,7 @@ class PageTwo(tk.Frame):
         circle_button.pack(pady=5)
         Polynomial_button= ttk.Button(self, text="Polynomial", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
         Polynomial_button.pack(pady=5)
+        ttk.Button(self, text="Simultaneous", command=lambda: controller.show_frame(simulPage)).pack(pady=5)
         wave_button = ttk.Button(self, text="Wave", command=lambda: controller.show_frame(wavePage))                #lambda allows you to pass things into function
         wave_button.pack(pady=5)
         Rline_button = ttk.Button(self, text="Scatter graph", command=lambda: controller.show_frame(Scatter))
@@ -400,6 +413,110 @@ class wavePage(tk.Frame):
         tan_button.pack(pady=10)
         tick.pack(pady=10)
         button2.pack(pady=20)
+
+class simulPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def button_command():
+
+            x1 = X1_pointin.get()
+            y1 = Y1_pointin.get()
+            ans1 = ans1_pointin.get()
+            x2 = X2_pointin.get()
+            y2 = Y2_pointin.get()
+            ans2 = ans2_pointin.get()
+
+            try:
+                x1 = float(x1)
+                y1 = float(y1)
+                ans1 = float(ans1)
+                x2 = float(x2)
+                y2 = float(y2)
+                ans2 = float(ans2)
+
+            except:
+                #popupmesg("!", "Can't take that")
+                #return
+                pass
+
+            A = np.array([[x1,y1], [x2,y2]])
+            B = np.array([ans1,ans2])
+            D = np.linalg.inv(A)
+            E = np.dot(D,B)
+            Xsolution.config(text="X = "+str(E[0]))
+            Ysolution.config(text="Y = "+str(E[1]))
+
+            a = x1
+            b = y1
+            c = x2
+            d = y2
+            x,y = sympy.symbols('x,y')
+            eq1 = sympy.Eq(a*x + b*y, ans1)
+            eq2 = sympy.Eq(c*x + d*y, ans2)
+            result = sympy.solve([eq1,eq2],(x,y))
+            #Xsolution.config(text=str(result))      #ext(iter(result.values()))
+            
+
+            
+        def clear():
+
+            X1_pointin.delete(0, tk.END)
+            X2_pointin.delete(0, tk.END)
+            Y1_pointin.delete(0, tk.END)
+            Y2_pointin.delete(0, tk.END)
+            ans1_pointin.delete(0, tk.END)
+            ans2_pointin.delete(0, tk.END)
+            Xsolution.config(text="")
+            Ysolution.config(text="")
+
+
+        def back():
+            clear()
+            controller.show_frame(PageTwo)
+                
+
+
+        Xlabel = ttk.Label(self, text="X", font=("Verdana", 9))
+        Ylabel = ttk.Label(self, text="Y", font=("Verdana", 9))
+        ans1label = ttk.Label(self, text="=", font=("Verdana", 9))
+        ans2label = ttk.Label(self, text="=", font=("Verdana", 9))
+
+        X1_pointin = ttk.Entry(self, width="10")
+        Y1_pointin = ttk.Entry(self, width="10")
+        ans1_pointin = ttk.Entry(self, width="10")
+        X2_pointin = ttk.Entry(self, width="10")
+        Y2_pointin = ttk.Entry(self, width="10")
+        ans2_pointin = ttk.Entry(self, width="10")
+        Xsolution = ttk.Label(self, text="")
+        Ysolution = ttk.Label(self, text="")
+
+        ttk.Separator(self, orient='vertical').grid(row=0, column=0, rowspan=5, padx=15)
+
+        button1 = ttk.Button(self, text="Enter", command= button_command)
+        CLear = ttk.Button(self, text="Clear", command=clear).grid(row=5, column=3)
+        Back = ttk.Button(self, text="Back", command=back).grid(row=5, column=1)
+
+        Xlabel.grid(row=0,column=1, padx=5, pady=5)
+        Ylabel.grid(row=0,column=2, padx=5, pady=5)
+        ans1label.grid(row=1,column=3, padx=8, pady=5)
+        ans2label.grid(row=2,column=3, padx=8, pady=5)
+
+        X1_pointin.grid(row=1,column=1, padx=5, pady=5)
+        Y1_pointin.grid(row=1,column=2, padx=5, pady=5)
+        ans1_pointin.grid(row=1,column=4, padx=5, pady=5)
+        X2_pointin.grid(row=2,column=1, padx=5, pady=5)
+        Y2_pointin.grid(row=2,column=2, padx=5, pady=5)
+        ans2_pointin.grid(row=2,column=4, padx=5,pady=5)
+
+        Xsolution.grid(row=3 , column=1, columnspan=3, pady=8, sticky="W")
+        Ysolution.grid(row=4 , column=1, columnspan=3, pady=8, sticky="W")
+
+        button1.grid(row=5, column=4, pady=20)
+
+
+
+
 
 class Scatter(tk.Frame):
     def __init__(self, parent, controller):
@@ -1262,18 +1379,25 @@ class SUVATPage(tk.Frame):
             t = T_pointin.get()
             try:
                 s, u, v, a, t = SUVAT.calculate(s, u, v, a, t)
-                popupmesg("SUVAT", "S = "+str(s)+"\nU = "+str(u)+"\nV = "+str(v)+"\nA = "+str(a)+"\nT = "+str(t))
-                back()
+                clear()
+                S_pointin.insert(0, str(s))
+                U_pointin.insert(0, str(u))
+                V_pointin.insert(0, str(v))
+                A_pointin.insert(0, str(a))
+                T_pointin.insert(0, str(t))
+                #popupmesg("SUVAT", "S = "+str(s)+"\nU = "+str(u)+"\nV = "+str(v)+"\nA = "+str(a)+"\nT = "+str(t))
             except:
                 popupmesg("!", "I can't take that")
-            
-
-        def back():
+        
+        def clear():
             S_pointin.delete(0, tk.END)
             U_pointin.delete(0, tk.END)
             V_pointin.delete(0, tk.END)
             A_pointin.delete(0, tk.END)
             T_pointin.delete(0, tk.END)
+
+        def back():
+            clear()
             controller.show_frame(StartPage)
 
         Slabel = ttk.Label(self, text="S =").grid(row=0, column=0, padx=65, pady=10)
@@ -1281,19 +1405,20 @@ class SUVATPage(tk.Frame):
         Vlabel = ttk.Label(self, text="V =").grid(row=2, column=0,pady=10) 
         Alabel = ttk.Label(self, text="A =").grid(row=3, column=0,pady=10) 
         Tlabel = ttk.Label(self, text="T =").grid(row=4, column=0,pady=10)
-        S_pointin = ttk.Entry(self, width="10")
-        U_pointin = ttk.Entry(self, width="10")
-        V_pointin = ttk.Entry(self, width="10")
-        A_pointin = ttk.Entry(self, width="10")
-        T_pointin = ttk.Entry(self, width="10")
+        S_pointin = ttk.Entry(self, width="15")
+        U_pointin = ttk.Entry(self, width="15")
+        V_pointin = ttk.Entry(self, width="15")
+        A_pointin = ttk.Entry(self, width="15")
+        T_pointin = ttk.Entry(self, width="15")
         S_pointin.grid(row=0, column=1,pady=10)
         U_pointin.grid(row=1, column=1,pady=10)
         V_pointin.grid(row=2, column=1,pady=10)
         A_pointin.grid(row=3, column=1,pady=10)
         T_pointin.grid(row=4, column=1,pady=10)
 
+        button1 = ttk.Button(self, text="Clear", command=clear).grid(row=5, column=0, pady=20, padx=65)
         button2 = ttk.Button(self, text="Enter", command=lambda: enter(self, S_pointin, U_pointin, V_pointin, A_pointin, T_pointin)).grid(row=5, column=1, pady=20)
-        button3 = ttk.Button(self, text="Back", command=back).grid(row=5, column=0, pady=20, padx=65)
+        button3 = ttk.Button(self, text="Back", command=back).grid(row=6, column=0)
 
 
 class sortPage(tk.Frame):
