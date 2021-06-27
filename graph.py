@@ -258,14 +258,13 @@ class PageTwo(tk.Frame):
 class GraphPage(tk.Frame):
     def __init__(self, parent, controller):
         global canvas
-        global graph #a, b, c, d 
+        global graph
 
         def check_box(self):
             if self.Details.get() == 0:
                 self.Details.set(1)
             else:
                 self.Details.set(0)
-            #print(self.Details.get())
         
         def button1_command(self):
             global roots
@@ -273,7 +272,7 @@ class GraphPage(tk.Frame):
             global org_graph
             global turning_points
             global x, y
-            checkVars.check_polynomial(checkVars, graphIn) #aIn, bIn, cIn, dIn)
+            checkVars.check_polynomial(checkVars, graphIn)
             if draw.polynomial(draw, False):
                 graphIn.delete(0, tk.END)
                 if self.Details.get() == 1:
@@ -296,30 +295,16 @@ class GraphPage(tk.Frame):
 
         #text inputs
         graphIn = ttk.Entry(self, width="23")
-        #aIn = ttk.Entry(self, width="20")
-        #bIn = ttk.Entry(self, width="20")
-        #cIn = ttk.Entry(self, width="20")
-        #dIn = ttk.Entry(self, width="20")
         graphLabel = ttk.Label(self, text="f(x)       =", font=("Verdana", 10))
-        #aLabel = ttk.Label(self, text="a = ", font=("Verdana", 8))
-        #bLabel = ttk.Label(self, text="b = ", font=("Verdana", 8))
-        #cLabel = ttk.Label(self, text="c = ", font=("Verdana", 8))
-        #dLabel = ttk.Label(self, text="d = ", font=("Verdana", 8))
+
         self.Details = tk.IntVar()
         tick = tk.Checkbutton(self, text="Show details", variable=self.Details, onvalue=True, command=lambda: check_box(self))
         button1 = ttk.Button(self, text="Enter", command=lambda: button1_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
         
         graphLabel.grid(row=0,column=0, pady=25)
-        #aLabel.grid(row=2,column=0)
-        #bLabel.grid(row=3,column=0)
-        #cLabel.grid(row=4,column=0)
-        #dLabel.grid(row=5,column=0)
         graphIn.grid(row=0,column=1, pady=25)
-        #aIn.grid(row=2,column=1, pady=5)
-        #bIn.grid(row=3,column=1, pady=5)
-        #cIn.grid(row=4,column=1, pady=5)
-        #dIn.grid(row=5,column=1, pady=5)
+
         tick.grid(row=1, column=1, pady=5)
         button1.grid(row=2,column=1, pady=5)
         button2.grid(row=2,column=0, pady=5, padx=60)
@@ -333,8 +318,6 @@ class circlePage(tk.Frame):
             if Bool == True:
                 draw.circle(draw, r, -cx, -cy, "cartesian")
                 controller.show_frame(PageTwo)
-
-        #label = ttk.Label(self, text="Circle", font=("Verdana", 10))
 
         rIn = ttk.Entry(self, width="10")
         cxIn = ttk.Entry(self, width="10")
@@ -442,13 +425,11 @@ class simulPage(tk.Frame):
                 x2 = X2_pointin.get()
                 y2 = Y2_pointin.get()
                 c2 = const2_pointin.get()
-                z1 = 0
 
             elif tab == "tab2":
                 x1 = X1_pointin2.get()  #x squared
                 y1 = Y1_pointin2.get()  #x
-                z1 = Z1_pointin2.get()  #constant
-                c1 = 0
+                c1 = Z1_pointin2.get()  #constant
                 c2 = 0
                 x2 = X2_pointin2.get()
                 y2 = Y2_pointin2.get()
@@ -456,7 +437,6 @@ class simulPage(tk.Frame):
             try:
                 x1 = float(x1)
                 y1 = float(y1)
-                z1 = float(z1)
                 c1 = float(c1)
                 x2 = float(x2)
                 y2 = float(y2)
@@ -476,7 +456,7 @@ class simulPage(tk.Frame):
                     draw.point(round(X, 2), round(Y,2))
 
             elif tab == "tab2":
-                solve_quad(x1, y1, z1,  x2, y2)
+                solve_quad(x1, y1, c1,  x2, y2)
                 if Draw2.get() == True:
                     graph = str(x1)+"*(x)**2 +"+str(y1)+"*x +"+str(z1)
                     org_graph = "y ="+str(x1)+"x² +"+str(y1)+"x +"+str(z1)
@@ -520,6 +500,7 @@ class simulPage(tk.Frame):
                 Xsolution.config(text="")
                 Y1_pointin.insert(0, "1")
                 Y2_pointin.insert(0, "1")
+                Draw.set(False)
 
             if tab == "tab2" or tab == "back":
                 X1_pointin2.delete(0, tk.END)
@@ -528,6 +509,7 @@ class simulPage(tk.Frame):
                 Y2_pointin2.delete(0, tk.END)
                 Z1_pointin2.delete(0, tk.END)
                 solution2.config(text="")
+                Draw2.set(False)
 
 
         def back():
@@ -579,9 +561,9 @@ class simulPage(tk.Frame):
 
         Y1_pointin.insert(0, "1")
         Y2_pointin.insert(0, "1")
-##########################################################################
+        ###############################################################
 
-########################## tab 2 #########################################
+        ############## tab 2 #########################################
         ttk.Label(tab2, text="X²", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5, sticky="S")
         ttk.Label(tab2, text="X", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5, sticky="S")
         ttk.Label(tab2, text="Const", font=("Verdana", 9)).grid(row=0,column=3, padx=5, pady=5, sticky="S")
@@ -609,7 +591,7 @@ class simulPage(tk.Frame):
         X2_pointin2.grid(row=3,column=1, padx=5, pady=5)
         Y2_pointin2.grid(row=3,column=2, padx=5, pady=5)
         solution2.grid(row=4 , column=1, columnspan=4, pady=8, sticky="W")
-##########################################################################
+        #################################################################
 
 
 class Scatter(tk.Frame):
@@ -1568,32 +1550,15 @@ class sortPage(tk.Frame):
 
 
 class checkVars():
-    def check_polynomial(self, graphIn): #aIn, bIn, cIn, dIn):
-        global graph #a, b, c, d 
+    def check_polynomial(self, graphIn):
+        global graph
         global limit
         global org_graph
         graph = graphIn.get()
         org_graph = "y = " + graphIn.get()
         org_graph = org_graph.replace("pi", "π")
-        #a = aIn.get()
-        #b = bIn.get()
-        #c = cIn.get()
-        #d = dIn.get()
-        #if a == "":
-        #    a = 0
-        #if b == "":
-        #    b = 0
-        #if c == "":
-        #    c = 0
-        #if d == "":
-        #    d = 0
-        #aIn.delete(0, tk.END)
-        #bIn.delete(0, tk.END)
-        #cIn.delete(0, tk.END)
-        #dIn.delete(0, tk.END)
         
         index = 0
-        #for _ in range (0, len(graph)):
         while index < len(graph):
             if graph[index] == "x":
                 graph = graph[:index] + "(" + graph[index:]
@@ -1601,7 +1566,6 @@ class checkVars():
                 index += 1
             index +=1
 
-        #for i in range (0, len(graph)-1):
         i = 0
         while i < len(graph)-1:
             if graph[i].isdigit():
@@ -1625,15 +1589,6 @@ class checkVars():
         graph = graph.replace("sin(", "math.sin(")
         graph = graph.replace("cos(", "math.cos(")
         graph = graph.replace("tan(", "math.tan(")
-        #try:
-         #   a = float(a)
-          #  b = float(b)
-           # c = float(c)
-            #d = float(d)
-        #return True
-        #except:
-        #    popupmesg("Can't accpet that!")
-        #    return False 
 
     def circle(self, rIn, cxIn, cyIn):
         global limit
@@ -1668,7 +1623,7 @@ class checkVars():
 
 class draw():
     def polynomial(self, dashed):
-        global graph #a,b,c,d
+        global graph
         global limit
         global roots
         global org_graph
@@ -1686,7 +1641,6 @@ class draw():
         x_range = []
         while nx < limit:
             graph_copy = graph.replace("x", str(nx))
-            #ny = (a*(nx**3))+(b*(nx**2))+(c*nx)+d
             try:
                 ny = float(eval(graph_copy))
     
@@ -1700,23 +1654,7 @@ class draw():
             return False
         x_range.append(x[0])
         x_range.append(x[-1])
-        #if a.is_integer():
-            #a = int(a)
-        #if b.is_integer():
-         #   b = int(b)
-       # if c.is_integer():
-        #    c = int(c)
-        #if d.is_integer():
-         #   d = int(d)
-        
-        #if a == 0 and b ==0 and c ==0:
-        #    lble1 = "y = "+str(d)
-        #elif a==0 and b ==0:
-        #    lble1 = "y="+str(c)+"x+"+str(d)
-        #elif a == 0:
-        #    lble1 = "y="+str(b)+"x^2+"+str(c)+"x+"+str(d)
-        #else:
-        #    lble1 = "y="+str(a)+"x^3+"+str(b)+"x^2+"+str(c)+"x+"+str(d)
+
         if dashed:
             s.plot(x,y, colours[colour_index], label=org_graph, linestyle='dashed')
         else:
