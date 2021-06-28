@@ -8,9 +8,11 @@ import sys
 import os
 from tkinter import PhotoImage, Scale, Scrollbar, Toplevel, simpledialog
 
+import time
 import numpy as np
 import sympy
 from PIL import Image, ImageTk
+from Sketch import sketch as st
 
 from sort import sort
 from SUVAT_maths import SUVAT
@@ -38,7 +40,22 @@ f = Figure(figsize=(6,6), dpi=100)
 s = f.add_subplot(111)
 canvas = FigureCanvasTkAgg(f)
 
+#(bulk comment = 'ctr' +  '/')
+#enter key to use
+# go = True
+# while go:
+#     key = time.time()/math.sin(0.13)/1000000000
+#     key = f'{key:.9}'
+#     password = simpledialog.askstring("Sign in", "Key:")
+#     print(password)
+#     if password == key[-3:]:
+#         go = False
+#         break
+#     if password == None:
+#         sys.exit()
+
 #s.set_title("Cartesian coordinate system")
+
 limit = 200
 l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
@@ -198,8 +215,9 @@ class StartPage(tk.Frame):
                 s.set_xlabel('X')
                 s.set_ylabel('Y')
                 canvas.draw()
-            controller.show_frame(PageTwo)
             axes_type = "Real"
+            controller.show_frame(PageTwo)
+            
             
         def Complex():
             global axes_type
@@ -208,8 +226,14 @@ class StartPage(tk.Frame):
                 s.set_xlabel('Real')
                 s.set_ylabel('Imaginary')
                 canvas.draw()
-            controller.show_frame(ComplexPage2)
             axes_type = "Complex"
+            controller.show_frame(ComplexPage2)
+
+
+        def Turtle():
+            button8['state'] = "disable"
+            st.press(True)
+
 
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
@@ -225,7 +249,10 @@ class StartPage(tk.Frame):
         button6 = ttk.Button(self, text="SUVAT", command=lambda:controller.show_frame(SUVATPage) )
         button6.pack(pady = 15)
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
-        button4.pack(pady=30)
+        button4.pack(pady=15)
+        button8 = ttk.Button(self, text="Sketch", command=Turtle )
+        button8.pack(pady=15)
+
 
 class PageTwo(tk.Frame):
     
@@ -1377,7 +1404,6 @@ class calculator(tk.Frame):
             except:
                 ansLable.config(text="Answer = Stupid")
 
-
         def sctCalc(sum, StartPos, length):
             calc = ""
             brkt = 0
@@ -1400,6 +1426,8 @@ class calculator(tk.Frame):
         def brackets():
             
             temp = sumIn.get()
+            if not(temp):
+                return
 
             temp = temp.replace("**", "^")
             temp = temp.replace("*", "x")
@@ -1438,7 +1466,7 @@ class calculator(tk.Frame):
 
         def clear():
             sumIn.delete(0, tk.END)
-            ansLable.config(text="")
+            ansLable.config(text="Answer =          ")
             
 
         tabContorle = ttk.Notebook(self)
@@ -1450,6 +1478,9 @@ class calculator(tk.Frame):
         tabContorle.add(tab3, text="Formulas")
         tabContorle.pack(expand=1, fill="both")
 
+        frame = tk.LabelFrame(tab1, width=380)
+        frame.grid(row=4, column=0, columnspan=10, padx=20, pady=10, sticky="W")
+
         self.ans = None
         self.SinAns = 0
         self.CosAns = 0
@@ -1458,12 +1489,13 @@ class calculator(tk.Frame):
         tick = tk.Checkbutton(tab1, text="Degrees", variable=self.degrees, onvalue=True, offvalue=False,  command=lambda: check_box(self))
         tick.grid(row=0, column=1)
         tick.select()
+        self.degrees.set(True)
         ttk.Separator(tab1, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
         sumIn = ttk.Entry(tab1, width="25", font=(12),)
         sumIn.grid(row=2, column=0, padx = 20, pady = 2)
         Lable1 = ttk.Label(tab1, text="(Don't forget brackets)", font=("Areial",7)).grid(row = 3, column=0, sticky="N")
-        ansLable = ttk.Label(tab1, text="", font=(11))
-        ansLable.grid(row=4, column=0,pady=30, padx=5, columnspan=2, sticky="W") 
+        ansLable = ttk.Label(frame, text="Answer =          ", font=(11))
+        ansLable.grid(row=0, column=0,pady=5, padx=5, columnspan=2, sticky="W") 
         ttk.Button(tab1, text="=", command=lambda: enter(sumIn)).grid(row=2, column=1, sticky="W")
         ttk.Button(tab1, text="AC", command= clear).grid(row=3, column=1, pady=15, sticky="W")
         ttk.Button(tab1, text="S ↔ D", command= SD).grid(row=5, column=1, sticky="W")
