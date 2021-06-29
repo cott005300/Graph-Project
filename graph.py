@@ -175,7 +175,7 @@ class main(tk.Tk):                                                          #inh
         container.grid_columnconfigure(0, weight=1)
 
         def Turtle():
-            ctrlmenu.entryconfig(4,state="disabled")
+            pagemenu.entryconfig(1,state="disabled")
             sketch.press()
         
         menubar = tk.Menu(container)
@@ -184,11 +184,15 @@ class main(tk.Tk):                                                          #inh
         ctrlmenu.add_command(label="Axes Size", command= lambda: axis_size(0))
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
-        ctrlmenu.add_command(label="Sketch", command= Turtle)
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
         ctrlmenu.add_command(label="Exit", command=sys.exit)
         menubar.add_cascade(label="Controls", menu=ctrlmenu)
+
+        pagemenu = tk.Menu(menubar, tearoff=0)
+        pagemenu.add_command(label="Home", command= lambda: self.show_frame(StartPage))
+        pagemenu.add_command(label="Sketch", command= Turtle)
+        menubar.add_cascade(label="Pages", menu=pagemenu)
 
         tk.Tk.config(self, menu=menubar)
 
@@ -584,6 +588,8 @@ class simulPage(tk.Frame):
                 C2in.delete(0, tk.END)
                 C3in.delete(0, tk.END)
 
+        def back():
+            controller.show_frame(PageTwo)
 
         tabContorle = ttk.Notebook(self)
         tab1 = ttk.Frame(tabContorle)
@@ -616,7 +622,7 @@ class simulPage(tk.Frame):
         tick = tk.Checkbutton(tab1, text="Draw",onvalue=True, offvalue=False, variable=Draw, command=lambda: check_box("tab1"))
         ttk.Button(tab1, text="Enter", command= lambda: button_command("tab1")).grid(row=6, column=4, pady=20)
         ttk.Button(tab1, text="Clear", command=lambda: clear("tab1")).grid(row=6, column=3)
-        ttk.Button(tab1, text="Back", command=lambda: controller.show_frame(PageTwo)).grid(row=6, column=1)
+        ttk.Button(tab1, text="Back", command=back).grid(row=6, column=1)
   
         X1_pointin.grid(row=1,column=1, padx=5, pady=5)
         Y1_pointin.grid(row=1,column=4, padx=5, pady=5)
@@ -650,7 +656,7 @@ class simulPage(tk.Frame):
         tick2 = tk.Checkbutton(tab2, text="Draw",onvalue=True, offvalue=False, variable=Draw2, command=lambda: check_box("tab2"))
         ttk.Button(tab2, text="Enter", command= lambda: button_command("tab2")).grid(row=7, column=4, pady=20)
         ttk.Button(tab2, text="Clear", command=lambda: clear("tab2")).grid(row=7, column=3)
-        ttk.Button(tab2, text="Back", command=controller.show_frame(PageTwo)).grid(row=7, column=1)
+        ttk.Button(tab2, text="Back", command=back).grid(row=7, column=1)
         tick2.grid(row=6 , column= 4)
   
         X1_pointin2.grid(row=1,column=1, padx=5, pady=5)
@@ -697,7 +703,7 @@ class simulPage(tk.Frame):
 
         ttk.Button(tab3, text="Enter", command= lambda: button_command2()).grid(row=5, column=3, pady=20,padx=5)
         ttk.Button(tab3, text="Clear", command=lambda: clear("tab3")).grid(row=5, column=2,padx=5)
-        ttk.Button(tab3, text="Back", command=controller.show_frame(PageTwo)).grid(row=5, column=0, padx=5)
+        ttk.Button(tab3, text="Back", command=back).grid(row=5, column=0, padx=5)
         ##################################################
 
 
