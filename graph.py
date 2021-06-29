@@ -12,7 +12,7 @@ import time
 import numpy as np
 import sympy
 from PIL import Image, ImageTk
-from Sketch import sketch as st
+from Sketch import sketch
 
 from sort import sort
 from SUVAT_maths import SUVAT
@@ -42,17 +42,17 @@ canvas = FigureCanvasTkAgg(f)
 
 #(bulk comment = 'ctr' +  '/')
 #enter key to use
-# go = True
-# while go:
-#     key = time.time()/math.sin(0.13)/1000000000
-#     key = f'{key:.9}'
-#     password = simpledialog.askstring("Sign in", "Key:")
-#     print(password)
-#     if password == key[-3:]:
-#         go = False
-#         break
-#     if password == None:
-#         sys.exit()
+ # go = True
+ # while go:
+ #     key = time.time()/math.sin(0.13)/1000000000
+ #     key = f'{key:.9}'
+ #     password = simpledialog.askstring("Sign in", "Key:") 
+ #     print(password)
+ #     if password == key[-3:]:
+ #         go = False
+ #         break
+ #     if password == None:
+ #         sys.exit()
 
 #s.set_title("Cartesian coordinate system")
 
@@ -173,6 +173,10 @@ class main(tk.Tk):                                                          #inh
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)    
         container.grid_columnconfigure(0, weight=1)
+
+        def Turtle():
+            ctrlmenu.entryconfig(4,state="disabled")
+            sketch.press()
         
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
@@ -180,6 +184,7 @@ class main(tk.Tk):                                                          #inh
         ctrlmenu.add_command(label="Axes Size", command= lambda: axis_size(0))
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
+        ctrlmenu.add_command(label="Sketch", command= Turtle)
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
         ctrlmenu.add_command(label="Exit", command=sys.exit)
@@ -230,11 +235,6 @@ class StartPage(tk.Frame):
             controller.show_frame(ComplexPage2)
 
 
-        def Turtle():
-            button8['state'] = "disable"
-            st.press(True)
-
-
         #self.configure(background='dodgerblue')
         label = ttk.Label(self, text="Home", font=("Verdana", 12))
         label.pack(pady=10, padx=25)
@@ -250,8 +250,6 @@ class StartPage(tk.Frame):
         button6.pack(pady = 15)
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
         button4.pack(pady=15)
-        button8 = ttk.Button(self, text="Sketch", command=Turtle )
-        button8.pack(pady=15)
 
 
 class PageTwo(tk.Frame):
@@ -495,6 +493,39 @@ class simulPage(tk.Frame):
                     draw.polynomial(draw, False)
                     #draw.point(round(X, 2), round(Y,2))
             
+        def button_command2():
+            values = []
+            values.append(X1in.get())
+            values.append(X2in.get())
+            values.append(X3in.get())
+            values.append(Y1in.get())
+            values.append(Y2in.get())
+            values.append(Y3in.get())
+            values.append(Z1in.get())
+            values.append(Z2in.get())
+            values.append(Z3in.get())
+            values.append(C1in.get())
+            values.append(C2in.get())
+            values.append(C3in.get())
+            print(values)
+            for i in range(0,len(values)):
+                if values[i] == "":
+                    values[i] = 0
+                try:
+                    values[i] = float(values[i])
+                except:
+                    popupmesg("!", "Can't take that")
+                    return
+            print(values)
+
+            x,y, z = sympy.symbols('x,y,z')
+            eq1 = sympy.Eq(values[0]*x + values[3]*y + values[6]*z, values[9])
+            eq2 = sympy.Eq(values[2]*x + values[4]*y + values[7]*z, values[10])
+            eq3 = sympy.Eq(values[3]*x + values[5]*y + values[8]*z, values[11])
+            result = sympy.solve([eq1,eq2, eq3],(x,y,z))
+            print(result)
+            answer.config(text="Coords or intersection:\n"+str(result[x])+"\n"+str(result[y])+"\n"+str(result[z])) 
+
 
         def solve_lin(a, b, c, d, e, f):
             #A = np.array([[x1,-y1], [x2,-y2]])
@@ -538,6 +569,20 @@ class simulPage(tk.Frame):
                 Z1_pointin2.delete(0, tk.END)
                 solution2.config(text="")
                 Draw2.set(False)
+
+            if tab == "tab3" or tab == "back":
+                X1in.delete(0, tk.END)
+                X2in.delete(0, tk.END)
+                X3in.delete(0, tk.END)
+                Y1in.delete(0, tk.END)
+                Y2in.delete(0, tk.END)
+                Y3in.delete(0, tk.END)
+                Z1in.delete(0, tk.END)
+                Z2in.delete(0, tk.END)
+                Z3in.delete(0, tk.END)
+                C1in.delete(0, tk.END)
+                C2in.delete(0, tk.END)
+                C3in.delete(0, tk.END)
 
 
         tabContorle = ttk.Notebook(self)
@@ -615,6 +660,45 @@ class simulPage(tk.Frame):
         Y2_pointin2.grid(row=3,column=2, padx=5, pady=5)
         solution2.grid(row=4 , column=1, columnspan=4, pady=8, sticky="W")
         #################################################################
+    
+        ############## tab 3 ###########################################
+        ttk.Label(tab3, text="X", font=("Verdana", 9)).grid(row=0,column=0, padx=5, pady=5, sticky="S")
+        ttk.Label(tab3, text="Y", font=("Verdana", 9)).grid(row=0,column=1, padx=5, pady=5, sticky="S")
+        ttk.Label(tab3, text="Z", font=("Verdana", 9)).grid(row=0,column=2, padx=5, pady=5, sticky="S")
+        ttk.Label(tab3, text="=   Cont", font=("Verdana", 9)).grid(row=0,column=3, padx=5, pady=5, sticky="W")
+
+        X1in = ttk.Entry(tab3, width="10")
+        X2in = ttk.Entry(tab3, width="10")
+        X3in = ttk.Entry(tab3, width="10")
+        Y1in = ttk.Entry(tab3, width="10")
+        Y2in = ttk.Entry(tab3, width="10")
+        Y3in = ttk.Entry(tab3, width="10")
+        Z1in = ttk.Entry(tab3, width="10")
+        Z2in = ttk.Entry(tab3, width="10")
+        Z3in = ttk.Entry(tab3, width="10")
+        C1in = ttk.Entry(tab3, width="10")
+        C2in = ttk.Entry(tab3, width="10")
+        C3in = ttk.Entry(tab3, width="10")
+        answer = ttk.Label(tab3, text="", font=("Verdana", 9))
+
+        X1in.grid(row=1, column=0, pady=5, padx=5)
+        X2in.grid(row=2, column=0, pady=5, padx=5)
+        X3in.grid(row=3, column=0, pady=5, padx=5)
+        Y1in.grid(row=1, column=1, pady=5, padx=5)
+        Y2in.grid(row=2, column=1, pady=5, padx=5)
+        Y3in.grid(row=3, column=1, pady=5, padx=5)
+        Z1in.grid(row=1, column=2, pady=5, padx=5)
+        Z2in.grid(row=2, column=2, pady=5, padx=5)
+        Z3in.grid(row=3, column=2, pady=5, padx=5)
+        C1in.grid(row=1, column=3, pady=5, padx=18, sticky="E")
+        C2in.grid(row=2, column=3, pady=5, padx=18, sticky="E")
+        C3in.grid(row=3, column=3, pady=5, padx=18, sticky="E")
+        answer.grid(row=4, column=0, columnspan=4, pady=5, sticky="W")
+
+        ttk.Button(tab3, text="Enter", command= lambda: button_command2()).grid(row=5, column=3, pady=20,padx=5)
+        ttk.Button(tab3, text="Clear", command=lambda: clear("tab3")).grid(row=5, column=2,padx=5)
+        ttk.Button(tab3, text="Back", command=controller.show_frame(PageTwo)).grid(row=5, column=0, padx=5)
+        ##################################################
 
 
 class Scatter(tk.Frame):
