@@ -95,7 +95,7 @@ def popupmesg(title, msg):
     popup.wm_title(title)
     root = popup
     if title[0] == "y":
-        frame = tk.LabelFrame(popup, fg=colours[colour_index-1], text=org_graph)
+        frame = tk.LabelFrame(popup, fg=colours[colour_index-1], text=org_graph, font=(12))
         frame.pack(expand=True, fill="both", padx=5, pady=5)
         root = frame
     label = ttk.Label(root, text=msg, font=("Verdana", 10))
@@ -178,11 +178,24 @@ class main(tk.Tk):                                                          #inh
             pagemenu.entryconfig(1,state="disabled")
             sketch.press()
         
+        def label():
+            labelx = simpledialog.askstring("Axes label", "X label")
+            if labelx == None:
+                return
+            s.set_xlabel(labelx)
+            labely = simpledialog.askstring("Axes label", "Y label")
+            if labely == None:
+                canvas.draw()
+                return
+            s.set_ylabel(labely)
+            canvas.draw()
+
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
         ctrlmenu.add_command(label="Axes Size", command= lambda: axis_size(0))
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
+        ctrlmenu.add_command(label="Axes Labels", command= label)
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
