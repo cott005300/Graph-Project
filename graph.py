@@ -175,6 +175,9 @@ class main(tk.Tk):                                                          #inh
         container.grid_columnconfigure(0, weight=1)
 
         def Turtle():
+            popupmesg("Turtle Controls", "'Click & drag' turtle to draw \n'Click' to draw straight lines\
+                                    \n'Right click' to clear \n'Space bar' for pen up \n'h' to hide turtle\
+                                    \n'Z' for undo \n'Enter' for colour change")
             pagemenu.entryconfig(1,state="disabled")
             sketch.press()
         
@@ -2092,6 +2095,7 @@ class graph_details():
  
         #print("a =",a, " b =",b, " c =", c, " d =",d)
         #print(graph_type)
+
         if graph_type == "linear":
             graph_details.linear(c, d)
         elif graph_type == "quadratic":
@@ -2101,6 +2105,7 @@ class graph_details():
         else:
             graph_details.search_roots()
             graph_details.search_TP()
+
         return a, b, c, d, graph_type
 
     def search_roots():

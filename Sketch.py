@@ -3,6 +3,8 @@ import tkinter as tk
 
 pen_status = "down"
 hide_status = "hidden"
+Colors = ["red", "orange","green", "blue", "pink","purple", "black"]
+cindex = 0
 
 class sketch():
       
@@ -12,10 +14,11 @@ class sketch():
         turtle.Screen().title("Peter's turtle sketch")
 
         tum = turtle.Turtle("turtle")
-
+        
         #pen_status = "down"
-        tum.pensize(2)
+        tum.pensize(3)
         tum.setpos(0,0)
+        tum,turtle.setheading(90)
         #turtle.Screen().textinput("Inputs", "'Esc' = Exit this mode\n'\n'Right click' = clear\n'space' = pen up/down\n'h' = hides turtle\n'z' = undoes last point")
         tum.showturtle()
 
@@ -28,7 +31,10 @@ class sketch():
             tum.ondrag(dragging)
         def back():
             for _ in range(0,7):
-                tum.undo()
+                try:
+                    tum.undo()
+                except:
+                    return
         def penup():
             global pen_status
             if pen_status == "down":
@@ -49,6 +55,15 @@ class sketch():
             tum.setheading(tum.towards(x,y))
             tum.setpos(x,y)
 
+        def colchnge():
+            global cindex
+            global Colors
+            tum.color(Colors[cindex])
+            tum.pencolor(Colors[cindex])
+            cindex += 1
+            if cindex == len(Colors):
+                cindex = 0
+
         turtle.Screen().listen()
         tum.ondrag(dragging)
         turtle.Screen().onscreenclick(clean, 3)
@@ -56,5 +71,6 @@ class sketch():
         turtle.Screen().onkey(penup, 'space')
         turtle.Screen().onkey(hide, 'h')
         turtle.Screen().onkey(back, 'z')
+        turtle.Screen().onkey(colchnge, 'Return')
         turtle.Screen().mainloop()
 
