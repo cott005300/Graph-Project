@@ -56,7 +56,7 @@ canvas = FigureCanvasTkAgg(f)
 
 #s.set_title("Cartesian coordinate system")
 
-limit = 200
+limit = 60
 l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
@@ -193,6 +193,67 @@ class main(tk.Tk):                                                          #inh
             s.set_ylabel(labely)
             canvas.draw()
 
+        def StopWatch():
+            popup = tk.Tk()
+            popup.wm_title("Stop Watch")
+            popup.geometry("190x200")
+            popup.stop = False
+            popup.h = "00"
+            popup.m = "00"
+            popup.s = "00"
+            popup.ms = "0"            
+
+            def start1():
+                popup.stop = False
+                start()
+
+            def start():
+                if popup.stop == False:
+                    time.sleep(0.09104)
+                    popup.ms = str(int(popup.ms) + 1)
+                    if int(popup.ms) > 9:
+                        popup.ms = str(0)
+                        popup.s = str(int(popup.s) + 1)
+                        if int(popup.s) > 59:
+                            popup.s = "00"
+                            popup.m = str(int(popup.m) + 1)
+                            if int(popup.m) > 59:
+                                popup.m = "00"
+                                popup.h = str(int(popup.h) + 1)
+
+                    label.config(text = popup.h+':'+popup.m+':'+popup.s+'.'+popup.ms)
+                    popup.update()
+                    start()
+
+            def Stop():
+                popup.stop = True
+            
+            def clear():
+                popup.h = "00"
+                popup.m = "00"
+                popup.s = "00"
+                popup.ms = "0"
+                label.config(text = popup.h+':'+popup.m+':'+popup.s+'.'+popup.ms)
+                popup.update()
+
+            def Exit():
+                popup.stop = True
+                popup.destroy()
+
+            frame = tk.LabelFrame(popup, fg=colours[colour_index-1])
+            frame.grid(column=0, row=0, padx=5, pady=15, columnspan=2)
+            
+            label = ttk.Label(frame, text='00:00:00.0', font=("Verdana", 15))
+            label.grid(column=0, row=0, padx=5, pady=5)
+            StartButt = ttk.Button(popup, text="Start", command= lambda: start1())
+            StartButt.grid(row=1, column=0, pady=10, padx=5)
+            StopButt = ttk.Button(popup, text="Stop", command= Stop)
+            StopButt.grid(row=1, column=1, padx=10)
+            ClearButt = ttk.Button(popup, text="Reset", command= clear)
+            ClearButt.grid(row=2, column=1)
+            B1 = ttk.Button(popup, text="Exit", command= Exit)
+            B1.grid(column=0, row=3, pady=20, columnspan=2)
+
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
@@ -207,6 +268,7 @@ class main(tk.Tk):                                                          #inh
 
         pagemenu = tk.Menu(menubar, tearoff=0)
         pagemenu.add_command(label="Home", command= lambda: self.show_frame(StartPage))
+        pagemenu.add_command(label="Stop Watch", command= StopWatch)
         pagemenu.add_command(label="Sketch", command= Turtle)
         menubar.add_cascade(label="Pages", menu=pagemenu)
 
@@ -527,7 +589,6 @@ class simulPage(tk.Frame):
             values.append(C1in.get())
             values.append(C2in.get())
             values.append(C3in.get())
-            print(values)
             for i in range(0,len(values)):
                 if values[i] == "":
                     values[i] = 0
@@ -536,14 +597,13 @@ class simulPage(tk.Frame):
                 except:
                     popupmesg("!", "Can't take that")
                     return
-            print(values)
 
             x,y, z = sympy.symbols('x,y,z')
             eq1 = sympy.Eq(values[0]*x + values[3]*y + values[6]*z, values[9])
             eq2 = sympy.Eq(values[2]*x + values[4]*y + values[7]*z, values[10])
             eq3 = sympy.Eq(values[3]*x + values[5]*y + values[8]*z, values[11])
             result = sympy.solve([eq1,eq2, eq3],(x,y,z))
-            print(result)
+
             answer.config(text="Coords or intersection:\n"+str(result[x])+"\n"+str(result[y])+"\n"+str(result[z])) 
 
 
@@ -739,6 +799,9 @@ class Scatter(tk.Frame):
             global limit
             xIn = X_pointin.get()
             yIn = Y_pointin.get()
+            if len(x) > 50:
+                x = []
+                y = []
             try:
                 if xIn == "":
                     xIn = 0
@@ -1896,7 +1959,7 @@ class draw():
             elif cx !=0 or cy != 0:
                 lble = "(x+"+str(cx)+")²+(y+"+str(cy)+")²="+str(r) 
         org_graph = lble
-
+        s.scatter(-cx, -cy, s=15, marker="D")
         s.plot(x,y, colours[colour_index], label=lble)
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         canvas.draw()
