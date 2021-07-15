@@ -69,6 +69,7 @@ roots = []
 turning_points = []
 colours = ["red","orange","lime","green","dodgerblue","blue","pink","purple","saddlebrown"]
 colour_index = 0
+graph_storage = []
 x = []
 y = []
 x_range = []
@@ -116,11 +117,12 @@ def clear_axis(MBset):
         s.set_xlabel('Real')
         s.set_ylabel('Imaginary')
     else:
-        limit = 200
+        limit = 60
         l1 = s.plot([-limit,limit],[0,0], "black")
         l2 = s.plot([0,0],[-limit,limit], "black")
         s.set_ylim([0-(1.05*limit), 0+(1.05*limit)])
         s.set_xlim([0-(1.05*limit), 0+(1.05*limit)])
+    graph_storage = []
     canvas.draw()
 
 def axis_pos():
@@ -254,9 +256,17 @@ class main(tk.Tk):                                                          #inh
             B1 = ttk.Button(popup, text="Exit", command= Exit)
             B1.grid(column=0, row=3, pady=20, columnspan=2)
 
+        def undo():
+            if graph_storage:
+                temp1 = graph_storage[-1]
+                temp1.pop(0).remove()
+                del graph_storage[-1]
+                canvas.draw()
+
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
         ctrlmenu.add_command(label="Swap Colour: "+str(colours[colour_index]), command= colour_change)
+        ctrlmenu.add_command(label="Undo", command= undo)
         ctrlmenu.add_command(label="Axes Size", command= lambda: axis_size(0))
         ctrlmenu.add_command(label="Axes Position", command= axis_pos)
         ctrlmenu.add_command(label="Axes Labels", command= label)
@@ -346,7 +356,7 @@ class PageTwo(tk.Frame):
         point_button.pack(pady=5)
         circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(circlePage))
         circle_button.pack(pady=5)
-        Polynomial_button= ttk.Button(self, text="Polynomial", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
+        Polynomial_button= ttk.Button(self, text="Function", command=lambda: controller.show_frame(GraphPage))                #lambda allows you to pass things into function
         Polynomial_button.pack(pady=5)
         ttk.Button(self, text="Simultaneous", command=lambda: controller.show_frame(simulPage)).pack(pady=5)
         wave_button = ttk.Button(self, text="Wave", command=lambda: controller.show_frame(wavePage))                #lambda allows you to pass things into function
@@ -1140,8 +1150,8 @@ class half_line_Page(tk.Frame):
                     elif neg == True and not(Y > limit) and  not(Y < -limit) and not(Y >= b):
                         x.append(X)
                         y.append(Y)
-                s.plot([-limit, limit], [b,b], "black",linestyle="dashed")
-                s.plot(x, y, colours[colour_index],label= "arg(z-("+str(-a)+" + "+str(-b)+"i))="+tlablel)
+                graph_storage.append(s.plot([-limit, limit], [b,b], "black",linestyle="dashed"))
+                graph_storage.append(s.plot(x, y, colours[colour_index],label= "arg(z-("+str(-a)+" + "+str(-b)+"i))="+tlablel))
                 s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
                 canvas.draw()
                 colour_change()
@@ -1215,7 +1225,7 @@ class PbisectorPage(tk.Frame):
             org_graph = "y="+str(round(m,2))+"x + "+str(round((-mdptx*m)+mdpty,2))
             draw.polynomial(draw, False)
             colour_index -= 1
-            s.plot([X,X2],[Y,Y2],colours[colour_index], linestyle="dashed")
+            graph_storage.append(s.plot([X,X2],[Y,Y2],colours[colour_index], linestyle="dashed"))
             canvas.draw()
             X_pointin.delete(0, tk.END)
             Y_pointin.delete(0, tk.END)
@@ -1538,6 +1548,7 @@ class calculator(tk.Frame):
                 sum = sum.replace("h", "6.62607004e-34")
                 sum = sum.replace("e", "math.e")
                 sum = sum.replace("pi", "math.pi")
+                sum = sum.replace("log(", "math.log(")
             
                 if self.ans:
                     sum = sum.replace("ans", self.ans)
@@ -1827,6 +1838,7 @@ class checkVars():
 
         graph = graph.replace("e", "math.e")
         graph = graph.replace("pi", "math.pi")
+        graph = graph.replace("log(", "math.log(")
         graph = graph.replace("sin(", "math.sin(")
         graph = graph.replace("cos(", "math.cos(")
         graph = graph.replace("tan(", "math.tan(")
@@ -1897,9 +1909,9 @@ class draw():
         x_range.append(x[-1])
 
         if dashed:
-            s.plot(x,y, colours[colour_index], label=org_graph, linestyle='dashed')
+            graph_storage.append( s.plot(x,y, colours[colour_index], label=org_graph, linestyle='dashed') )
         else:
-            s.plot(x,y, colours[colour_index], label=org_graph)
+            graph_storage.append( s.plot(x,y, colours[colour_index], label=org_graph) )
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         canvas.draw()
         colour_change()
@@ -1960,7 +1972,7 @@ class draw():
                 lble = "(x+"+str(cx)+")²+(y+"+str(cy)+")²="+str(r) 
         org_graph = lble
         s.scatter(-cx, -cy, s=15, marker="D")
-        s.plot(x,y, colours[colour_index], label=lble)
+        graph_storage.append((s.plot(x,y, colours[colour_index], label=lble)))
         s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
         canvas.draw()
         colour_change()
@@ -1981,7 +1993,7 @@ class draw():
                 X_point = int(X_point)
             if Y_point.is_integer():
                 Y_point = int(Y_point)
-            s.scatter(X_point, Y_point, c=colours[colour_index], s=30,label="("+str(X_point)+","+str(Y_point)+")")
+            graph_storage.append(s.scatter(X_point, Y_point, c=colours[colour_index], s=30,label="("+str(X_point)+","+str(Y_point)+")"))
             s.legend(bbox_to_anchor=(0,1.02,1,.102), loc=3, ncol=2, borderaxespad=0)
             canvas.draw()
             colour_change()
