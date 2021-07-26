@@ -70,6 +70,7 @@ turning_points = []
 colours = ["red","orange","lime","green","dodgerblue","blue","pink","purple","saddlebrown"]
 colour_index = 0
 graph_storage = []
+undone = False
 x = []
 y = []
 x_range = []
@@ -162,6 +163,17 @@ def axis_size(limitIn):
     l2 = s.plot([0,0],[-limit,limit], "black")
     canvas.draw()
 
+def undo():
+    global colour_index
+    global undone
+    undone = True
+    if graph_storage:
+        temp1 = graph_storage[-1]
+        temp1.pop(0).remove()
+        del graph_storage[-1]
+        canvas.draw()
+    if colour_index > 0:
+        colour_index -= 1
 
 class main(tk.Tk):                                                          #inhertit from tk
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
@@ -255,13 +267,6 @@ class main(tk.Tk):                                                          #inh
             ClearButt.grid(row=2, column=1)
             B1 = ttk.Button(popup, text="Exit", command= Exit)
             B1.grid(column=0, row=3, pady=20, columnspan=2)
-
-        def undo():
-            if graph_storage:
-                temp1 = graph_storage[-1]
-                temp1.pop(0).remove()
-                del graph_storage[-1]
-                canvas.draw()
 
         menubar = tk.Menu(container)
         ctrlmenu = tk.Menu(menubar, tearoff=0)
@@ -396,9 +401,11 @@ class GraphPage(tk.Frame):
             global org_graph
             global turning_points
             global x, y
+            global undone
             checkVars.check_polynomial(checkVars, graphIn)
             if draw.polynomial(draw, False):
                 graphIn.delete(0, tk.END)
+                undone = False
                 if self.Details.get() == 1:
                     a, b, c, d, graph_type = graph_details.details()
                     if roots:
@@ -415,23 +422,38 @@ class GraphPage(tk.Frame):
             else:
                 popupmesg(" ","Please try again")          
 
+        def edit():
+            global undone
+            if undone == False:
+                if graph_storage:
+                    undo()
+                    graphIn.delete(0, tk.END)
+                    graphIn.insert(0,org_graph[4:])
+            else:
+                popupmesg("!", "Already undone\nprevious graph")
+            undone = True
+
         tk.Frame.__init__(self, parent)
 
         #text inputs
-        graphIn = ttk.Entry(self, width="23")
-        graphLabel = ttk.Label(self, text="f(x)       =", font=("Verdana", 10))
+        graphIn = ttk.Entry(self, width="25", font=(10))
+        graphLabel = ttk.Label(self, text="f(x)   =", font=("Verdana", 10))
 
         self.Details = tk.IntVar()
         tick = tk.Checkbutton(self, text="Show details", variable=self.Details, onvalue=True, command=lambda: check_box(self))
         button1 = ttk.Button(self, text="Enter", command=lambda: button1_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
-        
-        graphLabel.grid(row=0,column=0, pady=25)
-        graphIn.grid(row=0,column=1, pady=25)
+        button3 = ttk.Button(self, text="Edit last", command=lambda: edit())
 
-        tick.grid(row=1, column=1, pady=5)
-        button1.grid(row=2,column=1, pady=5)
-        button2.grid(row=2,column=0, pady=5, padx=60)
+        #ttk.Separator(self, orient='horizontal').grid(row=1, column=2, rowspan=3 ,pady=20)
+        
+        graphLabel.grid(row=0,column=0, pady=25, padx=20)
+        graphIn.grid(row=0,column=1, pady=25, columnspan=3)
+
+        tick.grid(row=1, column=3, pady=5)
+        button1.grid(row=2,column=3, pady=5, padx=25)
+        button2.grid(row=3,column=0, pady=20, padx=50, columnspan=2)
+        button3.grid(row=2,column=0, pady=5, padx=50, columnspan=2)
 
 class circlePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -1739,7 +1761,7 @@ class calculator(tk.Frame):
         tick.select()
         self.degrees.set(True)
         ttk.Separator(tab1, orient='vertical').grid(row=1, column=0, columnspan=2, pady=20)
-        sumIn = ttk.Entry(tab1, width="25", font=(12),)
+        sumIn = ttk.Entry(tab1, width="25", font=(12))
         sumIn.grid(row=2, column=0, padx = 20, pady = 2)
         Lable1 = ttk.Label(tab1, text="(Don't forget brackets)", font=("Areial",7)).grid(row = 3, column=0, sticky="N")
         ansLable = ttk.Label(frame, text="Answer =          ", font=(11))
