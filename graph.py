@@ -56,7 +56,7 @@ canvas = FigureCanvasTkAgg(f)
 
 #s.set_title("Cartesian coordinate system")
 
-limit = 60
+limit = 40
 l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
@@ -117,7 +117,7 @@ def clear_axis(MBset):
         s.set_xlabel('Real')
         s.set_ylabel('Imaginary')
     else:
-        limit = 60
+        limit = 40
         l1 = s.plot([-limit,limit],[0,0], "black")
         l2 = s.plot([0,0],[-limit,limit], "black")
         s.set_ylim([0-(1.05*limit), 0+(1.05*limit)])
@@ -342,6 +342,11 @@ class StartPage(tk.Frame):
         button6.pack(pady = 15)
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
         button4.pack(pady=15)
+
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
+        canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
 
 
 class PageTwo(tk.Frame):
@@ -1406,6 +1411,18 @@ class statsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        def check_box(self, which):
+            if which == 1:  
+                if self.boxplot.get() == False:
+                    self.boxplot.set(True)
+                else:
+                    self.boxplot.set(False)
+            elif which == 2:
+                if self.CF.get() == False:
+                    self.CF.set(True)
+                else:
+                    self.CF.set(False)
+
         def  button_command(self, x_pointin, f_pointin):
             global x, y
             if self.counter > 20:
@@ -1433,7 +1450,10 @@ class statsPage(tk.Frame):
                 self.counter += 1
                 x_pointin.delete(0, tk.END)
                 f_pointin.delete(0, tk.END)
-                x_pointin.insert(0,str(X+1))
+                try:
+                    x_pointin.insert(0,str(  int(x[-1] + abs(x[-1] - x[-2])))  )
+                except:
+                    x_pointin.insert(0,str(X + 1))
             except:
                 popupmesg("!", "Can't take that")
 
@@ -1479,9 +1499,46 @@ class statsPage(tk.Frame):
 
             # σ Σ x̄ ²
             popupmesg("Stats", "x̄ = "+str(mean)+"\nΣx = "+str(Zx)+"\nΣx² = "+str(Zx2)+"\nσ² = "+str(variance)+"\nσ = "+str(SD)+"\nΣf (n) = "+str(Zf)+"\nQ1 = "+str(Q1)+"\nQ2 = "+str(Q2)+"\nQ3 = "+str(Q3)+"\nIQR = "+str(IQR))
-            x = []
-            y = []
-            back()
+            
+            if self.boxplot.get() == True:
+                all = []
+                for i in range (0,len(x)):
+                    for _ in range(0,int(y[i])):
+                        all.append(x[i])
+
+                s.boxplot(all, vert=False, whis=20, widths=1.9)
+                canvas.draw()
+
+                max = 0
+                for i in range(0, len(all)):
+                    if all[i] > max:
+                        max = all[i]
+                    s.set_ylim([0, 1.5])
+                    s.set_xlim([0, max*0.05])
+                
+
+            if self.CF.get() == True:
+                all = []
+                sum = 0
+                for i in range (0,len(y)):
+                    sum += y[i]
+                    all.append(sum)
+
+                for i in range(0, len(all)):
+                    if all[i] > limit:
+                        limittemp = all[i]
+                if limittemp == None:
+                    s.set_ylim([0, limit])
+                    s.set_xlim([0, limit])
+                else:
+                    s.set_ylim([0, limittemp*1.05])
+                    s.set_xlim([0, limit])
+
+                graph_storage.append( s.plot(x,all, marker=".") )
+                canvas.draw()
+            all = []
+
+            clear(self, False)
 
         def undo(self):
             global x, y
@@ -1494,16 +1551,20 @@ class statsPage(tk.Frame):
                     x_pointin.insert(0,str(x[-1]+1))
                 self.counter -= 1
         
-        def back():
+        def clear(self, clr):
             global x, y
             x = []
             y = []
+            self.CF.set(False)
+            self.boxplot.set(False)
+            tick.deselect()
+            tick2.deselect()
             self.counter = 1
             x_pointin.delete(0, tk.END)
             f_pointin.delete(0, tk.END)
-            for i in table.get_children():
-                table.delete(i)
-            controller.show_frame(StartPage)
+            if clr == True:
+                for i in table.get_children():
+                    table.delete(i)
 
         self.counter = 1
         table = ttk.Treeview(self)
@@ -1524,9 +1585,16 @@ class statsPage(tk.Frame):
         f_pointin.grid(row=1, column=1,pady=5)
         button1 = ttk.Button(self, text="Enter", command=lambda:button_command(self, x_pointin,f_pointin)).grid(row=2, column=1,pady=8)
         button4 = ttk.Button(self, text="Undo last", command=lambda:undo(self)).grid(row=2, column=0)
-        table.grid(row=3, column=0, columnspan=2,padx=65, pady=20)
-        button2 = ttk.Button(self, text="Finish", command=finish).grid(row=4, column=1)
-        button3 = ttk.Button(self, text="Back", command=back).grid(row=4, column=0)
+        button6 = ttk.Button(self, text="Clear", command=lambda:clear(self, True)).grid(row=3, column=0)
+        table.grid(row=4, column=0, columnspan=2,padx=65, pady=10)
+        self.boxplot = tk.BooleanVar()
+        tick = tk.Checkbutton(self, text="Draw Boxplot", variable=self.boxplot, command=lambda: check_box(self, 1))
+        tick.grid(row=5, column=0)
+        self.CF = tk.BooleanVar()
+        tick2 = tk.Checkbutton(self, text="Cumulative frequency", variable=self.CF, command=lambda: check_box(self, 2))
+        tick2.grid(row=5, column=1, columnspan=2)
+        button2 = ttk.Button(self, text="Finish", command=finish).grid(row=6, column=1)
+        button3 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage)).grid(row=6, column=0)
 
 
 class calculator(tk.Frame):
