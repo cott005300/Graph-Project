@@ -446,7 +446,7 @@ class GraphPage(tk.Frame):
         button3 = ttk.Button(self, text="Edit last", command=lambda: edit())
 
         #ttk.Separator(self, orient='horizontal').grid(row=1, column=2, rowspan=3 ,pady=20)
-        
+
         graphLabel.grid(row=0,column=0, pady=25, padx=20)
         graphIn.grid(row=0,column=1, pady=25, columnspan=3)
 
@@ -1638,7 +1638,6 @@ class calculator(tk.Frame):
                 sum = sum.replace("h", "6.62607004e-34")
                 sum = sum.replace("e", "math.e")
                 sum = sum.replace("pi", "math.pi")
-                sum = sum.replace("log(", "math.log(")
             
                 if self.ans:
                     sum = sum.replace("ans", self.ans)
@@ -1647,26 +1646,50 @@ class calculator(tk.Frame):
                     self.SinAns = sum.find("sin(")      #have to convert angle to radians before calculation
                     self.CosAns = sum.find("cos(")
                     self.TanAns = sum.find("tan(")
+                    # self.aSinAns = sum.find("sin^-1(")      
+                    # self.aCosAns = sum.find("cos^-1(")
+                    # self.aTanAns = sum.find("tan^-1(")
                     if self.SinAns != -1:
                         calc = sctCalc(sum, self.SinAns+3, len(sum))
                         exec("self.SinAns = "+calc)
                         self.SinAns = np.deg2rad(float(self.SinAns))
                         sum = sum.replace(str(calc), "("+str(self.SinAns)+")")
-
                     if self.CosAns != -1:
                         calc = sctCalc(sum, self.CosAns+3, len(sum))
                         exec("self.CosAns = "+calc)
                         self.CosAns = np.deg2rad(float(self.CosAns))
                         sum = sum.replace(str(calc), "("+str(self.CosAns)+")")
-
                     if self.TanAns != -1:
                         calc = sctCalc(sum, self.TanAns+3, len(sum))
                         exec("self.TanAns = "+calc)
                         self.TanAns = np.deg2rad(float(self.TanAns))
                         sum = sum.replace(str(calc), "("+str(self.TanAns)+")")
+
+                    # if self.aSinAns != -1:
+                    #     calc = sctCalc(sum, self.aSinAns+3, len(sum))
+                    #     exec("self.SinAns = "+calc)
+                    #     self.aSinAns = np.deg2rad(float(self.aSinAns))
+                    #     sum = sum.replace(str(calc), "("+str(self.aSinAns)+")")
+                    # if self.aCosAns != -1:
+                    #     calc = sctCalc(sum, self.aCosAns+3, len(sum))
+                    #     exec("self.CosAns = "+calc)
+                    #     self.aCosAns = np.deg2rad(float(self.aCosAns))
+                    #     sum = sum.replace(str(calc), "("+str(self.aCosAns)+")")
+                    # if self.aTanAns != -1:
+                    #     calc = sctCalc(sum, self.aTanAns+3, len(sum))
+                    #     exec("self.TanAns = "+calc)
+                    #     self.aTanAns = np.deg2rad(float(self.aTanAns))
+                    #     sum = sum.replace(str(calc), "("+str(self.aTanAns)+")")
+                    
                 sum = sum.replace("sin(", "math.sin(")
                 sum = sum.replace("cos(", "math.cos(")
                 sum = sum.replace("tan(", "math.tan(")
+                if self.degrees.get() == False:
+                    sum = sum.replace("sin**-1(", "math.asin(")
+                    sum = sum.replace("cos**-1(", "math.acos(")
+                    sum = sum.replace("tan**-1(", "math.atan(")
+                
+                #print(sum)
 
                 exec("self.ans = str("+sum+")")
                 ansLable.config(text="Answer = "+self.ans)
@@ -1774,7 +1797,7 @@ class calculator(tk.Frame):
 
         label2 = ttk.Label(tab2, font=(10), text="g = 9.80665 \npi = "+str(math.pi)+\
                                                 "\ne = "+str(math.e)+" \nh = 6.62607004e-34\
-                                                \nsin, cos and tan \nans (for previus answer)\
+                                                \nsin, cos and tan() \nsin^-1, cos^-1 and tan^-1 (Radians only)\nans (for previus answer)\
                                                 \n\n(You can use these in the calculator) ").pack(padx=50, pady = 30)    
 
         image1 = Image.open("all equations.png")
