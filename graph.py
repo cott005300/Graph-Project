@@ -888,6 +888,21 @@ class Scatter(tk.Frame):
             Ypoints.config(text="")
             controller.show_frame(PageTwo)
 
+        def undo_cmd(self):
+            global x, y
+            if x:
+                del x[-1]
+                del y[-1]
+                X_pointin.delete(0, tk.END)
+                Y_pointin.delete(0, tk.END)
+                xtemp = ""
+                ytemp = ""
+                for z in range(0, len(x)):
+                    xtemp += str(x[z])+"\n"
+                    ytemp += str(y[z])+"\n"
+                Xpoints.config(text="X Points\n"+str(xtemp))
+                Ypoints.config(text="Y Points\n"+str(ytemp))
+
         x = []
         y = []
         X_pointin = ttk.Entry(self, width="10")
@@ -898,6 +913,7 @@ class Scatter(tk.Frame):
         Ypoints = ttk.Label(self, text="", font=("Verdana", 9))
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
         button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
+        button4 = ttk.Button(self, text="Undo", command=lambda: undo_cmd(self))
         button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
         self.rline = tk.IntVar()
         tick = tk.Checkbutton(self, text="Linear squares regreesion line\n(Line of best fit)", variable=self.rline, command=lambda: check_box(self))
@@ -907,9 +923,10 @@ class Scatter(tk.Frame):
         X_pointin.grid(row=0,column=1, padx=5, pady=5)
         Y_pointin.grid(row=1,column=1, padx=5, pady=5)
         button1.grid(row=2,column=1, pady=10)
-        button2.grid(row=2,column=0, pady=10)
-        button3.grid(row=4,column=1, pady=5)
-        tick.grid(row=4,column=0, pady=5)
+        button2.grid(row=5,column=0, pady=30)
+        button3.grid(row=4, column=1, pady=5)
+        button4.grid(row=2, column=0, pady=10)
+        tick.grid(row=4,column=0, pady=5, padx=15)
         Ypoints.grid(row=3,column=1, pady=5)
         Xpoints.grid(row=3,column=0, pady=5)
 
