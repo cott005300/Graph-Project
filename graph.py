@@ -853,20 +853,13 @@ class Scatter(tk.Frame):
                 return
             X_pointin.delete(0, tk.END)
             Y_pointin.delete(0, tk.END)
-            xtemp = ""
-            ytemp = ""
-            for z in range(0, len(x)):
-                xtemp += str(x[z])+"\n"
-                ytemp += str(y[z])+"\n"
-            Xpoints.config(text="X Points\n"+str(xtemp))
-            Ypoints.config(text="Y Points\n"+str(ytemp))
+            table.insert(parent="", index="end", iid=self.counter-1, text=str(self.counter),values=(x[-1], y[-1]))
+            self.counter += 1
 
         def button3_command(self):
             global x, y
             if len(x) >= 2 or len(y) >= 2:
                 draw.Scatter("x")
-                Xpoints.config(text="")
-                Ypoints.config(text="")
                 if self.rline.get() == 1:
                     xytemp = []
                     for z in range(0, len(x)):
@@ -880,55 +873,79 @@ class Scatter(tk.Frame):
             else:
                 popupmesg("!", "Need more points")
 
-        def back_command(self):
+        def undo_cmd(self):
+            global x, y
+            # if x:
+            #     del x[-1]
+            #     del y[-1]
+            #     X_pointin.delete(0, tk.END)
+            #     Y_pointin.delete(0, tk.END)
+            #     xtemp = ""
+            #     ytemp = ""
+            #     for z in range(0, len(x)):
+            #         xtemp += str(x[z])+"\n"
+            #         ytemp += str(y[z])+"\n"
+            #     Xpoints.config(text="X Points\n"+str(xtemp))
+            #     Ypoints.config(text="Y Points\n"+str(ytemp))
+
+            if x:
+                table.delete(self.counter-2)
+                del x[-1]
+                del y[-1]
+                #x_pointin.delete(0, tk.END)
+
+                self.counter -= 1
+
+        def clear(self):
             global x, y
             x = []
             y = []
-            Xpoints.config(text="")
-            Ypoints.config(text="")
-            controller.show_frame(PageTwo)
-
-        def undo_cmd(self):
-            global x, y
-            if x:
-                del x[-1]
-                del y[-1]
-                X_pointin.delete(0, tk.END)
-                Y_pointin.delete(0, tk.END)
-                xtemp = ""
-                ytemp = ""
-                for z in range(0, len(x)):
-                    xtemp += str(x[z])+"\n"
-                    ytemp += str(y[z])+"\n"
-                Xpoints.config(text="X Points\n"+str(xtemp))
-                Ypoints.config(text="Y Points\n"+str(ytemp))
+            self.rline.set(0)
+            tick.deselect()
+            self.counter = 1
+            X_pointin.delete(0, tk.END)
+            Y_pointin.delete(0, tk.END)
+            for i in table.get_children():
+                table.delete(i)
 
         x = []
         y = []
+        self.counter = 1
+
+        table = ttk.Treeview(self)
+        table["columns"] = ("X", "Y")
+        table.column("#0", width=60, minwidth=35,anchor=CENTER)
+        table.column("X", anchor=CENTER, minwidth=40, width=70)
+        table.column("Y", anchor=CENTER, minwidth=40, width=90)
+
+        table.heading("#0", text="Input", anchor=CENTER)
+        table.heading("X", anchor=CENTER, text="X")
+        table.heading("Y", anchor=CENTER, text="Y")
+
         X_pointin = ttk.Entry(self, width="10")
         Y_pointin = ttk.Entry(self, width="10")
         Xlabel = ttk.Label(self, text="X         =", font=("Verdana", 9))
         Ylabel = ttk.Label(self, text="Y         =", font=("Verdana", 9))
-        Xpoints = ttk.Label(self, text="", font=("Verdana", 9))
-        Ypoints = ttk.Label(self, text="", font=("Verdana", 9))
         button1 = ttk.Button(self, text="Enter", command=lambda: button_command(self))
-        button2 = ttk.Button(self, text="Back", command=lambda: back_command(self))
+        button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(PageTwo))
         button4 = ttk.Button(self, text="Undo", command=lambda: undo_cmd(self))
         button3 = ttk.Button(self, text="Finish", command= lambda: button3_command(self))
+        button5 = ttk.Button(self, text="Clear", command=lambda: clear(self))
         self.rline = tk.IntVar()
-        tick = tk.Checkbutton(self, text="Linear squares regreesion line\n(Line of best fit)", variable=self.rline, command=lambda: check_box(self))
+        tick = tk.Checkbutton(self, text="Line of best fit", variable=self.rline, command=lambda: check_box(self))
 
-        Xlabel.grid(row=0,column=0, padx=65, pady=5)
-        Ylabel.grid(row=1,column=0, padx=65, pady=5)
+        Xlabel.grid(row=0,column=0, padx=68, pady=5)
+        Ylabel.grid(row=1,column=0, padx=68, pady=5)
         X_pointin.grid(row=0,column=1, padx=5, pady=5)
         Y_pointin.grid(row=1,column=1, padx=5, pady=5)
-        button1.grid(row=2,column=1, pady=10)
-        button2.grid(row=5,column=0, pady=30)
-        button3.grid(row=4, column=1, pady=5)
-        button4.grid(row=2, column=0, pady=10)
-        tick.grid(row=4,column=0, pady=5, padx=15)
-        Ypoints.grid(row=3,column=1, pady=5)
-        Xpoints.grid(row=3,column=0, pady=5)
+        button4.grid(row=2, column=0, pady=10)#undo
+        button1.grid(row=2,column=1, pady=10)#enter
+        #ttk.Separator(self, orient='horizontal').grid(row=3, column=0, columnspan=2, padx=20)
+        table.grid(row=3, column=0, columnspan=3,padx=0, pady=10,sticky="e")
+        button5.grid(row=4, column=0, pady=5)#clear
+        button3.grid(row=5, column=1, pady=5)#finsh
+        tick.grid(row=4,column=1, pady=5, padx=0)
+        button2.grid(row=5,column=0, pady=5, padx=15)#back
 
 class BarChartPage(tk.Frame):
     def __init__(self, parent, controller):
