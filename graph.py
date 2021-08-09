@@ -7,6 +7,7 @@ import matplotlib
 import sys
 import os
 from tkinter import PhotoImage, Scale, Scrollbar, Toplevel, simpledialog
+import threading
 
 import time
 import numpy as np
@@ -192,7 +193,7 @@ class main(tk.Tk):                                                          #inh
             popupmesg("Turtle Controls", "'Click & drag' turtle to draw \n'Click' to draw straight lines\
                                     \n'Right click' to clear \n'Space bar' for pen up \n'h' to hide turtle\
                                     \n'Z' for undo \n'Enter' for colour change")
-            pagemenu.entryconfig(1,state="disabled")
+            pagemenu.entryconfig(2,state="disabled")
             sketch.press()
         
         def label():
@@ -215,18 +216,25 @@ class main(tk.Tk):                                                          #inh
             popup.h = "00"
             popup.m = "00"
             popup.s = "00"
-            popup.ms = "0"            
+            #popup.ms = "0"            
 
             def start1():
                 popup.stop = False
-                start()
+                thread2 = threading.Thread(target=start2( time.strftime("%S", time.localtime()) ))
+                thread2.start()
+                #start2(time.strftime("%S", time.localtime()))
 
-            def start():
-                if popup.stop == False:
-                    time.sleep(0.09104)
-                    popup.ms = str(int(popup.ms) + 1)
-                    if int(popup.ms) > 9:
-                        popup.ms = str(0)
+            def start2(tme_bf):
+                for _ in range(0,9999999999999999999):
+                    if popup.stop == True:
+                        break
+                    tme = time.strftime('%S', time.localtime())
+                    #time.sleep(0.02)
+
+                    if tme != tme_bf:
+                        #popup.ms = str(int(popup.ms) + 1)
+                        #if int(popup.ms) > 9:
+                            #popup.ms = str(0)
                         popup.s = str(int(popup.s) + 1)
                         if int(popup.s) > 59:
                             popup.s = "00"
@@ -234,10 +242,15 @@ class main(tk.Tk):                                                          #inh
                             if int(popup.m) > 59:
                                 popup.m = "00"
                                 popup.h = str(int(popup.h) + 1)
+                        tme_bf = tme
 
-                    label.config(text = popup.h+':'+popup.m+':'+popup.s+'.'+popup.ms)
-                    popup.update()
-                    start()
+                        #self.after_idle(Update)
+                        Update()
+                    #start2(tme_bf)
+
+            def Update():
+                label.config(text = popup.h+':'+popup.m+':'+popup.s)#+'.'+popup.ms)
+                popup.update()
 
             def Stop():
                 popup.stop = True
@@ -257,7 +270,7 @@ class main(tk.Tk):                                                          #inh
             frame = tk.LabelFrame(popup, fg=colours[colour_index-1])
             frame.grid(column=0, row=0, padx=5, pady=15, columnspan=2)
             
-            label = ttk.Label(frame, text='00:00:00.0', font=("Verdana", 15))
+            label = ttk.Label(frame, text='00:00:00', font=("Verdana", 15))
             label.grid(column=0, row=0, padx=5, pady=5)
             StartButt = ttk.Button(popup, text="Start", command= lambda: start1())
             StartButt.grid(row=1, column=0, pady=10, padx=5)
@@ -875,24 +888,10 @@ class Scatter(tk.Frame):
 
         def undo_cmd(self):
             global x, y
-            # if x:
-            #     del x[-1]
-            #     del y[-1]
-            #     X_pointin.delete(0, tk.END)
-            #     Y_pointin.delete(0, tk.END)
-            #     xtemp = ""
-            #     ytemp = ""
-            #     for z in range(0, len(x)):
-            #         xtemp += str(x[z])+"\n"
-            #         ytemp += str(y[z])+"\n"
-            #     Xpoints.config(text="X Points\n"+str(xtemp))
-            #     Ypoints.config(text="Y Points\n"+str(ytemp))
-
             if x:
                 table.delete(self.counter-2)
                 del x[-1]
                 del y[-1]
-                #x_pointin.delete(0, tk.END)
 
                 self.counter -= 1
 
@@ -1325,6 +1324,10 @@ class MBsetPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        self.axes = tk.IntVar()
+        self.red = tk.IntVar()
+        self.blue = tk.IntVar()
+
         def check_box(self, which):
             if which == "axes":
                 if self.axes.get() == 0:
@@ -1345,28 +1348,11 @@ class MBsetPage(tk.Frame):
         def slider_changed(self):
             current_value_label.configure(text=str(round(slider.get(),1)))
 
-        def button_command(self):
+        def button_command(self, scheme, colour):
             global x, y
             global limit
-            if self.red.get() == 0 and self.blue.get() == 0:
-                tick_red.flash()
-                tick_blue.flash()
-                tick_red.flash()
-                tick_blue.flash()
-                return
-            if self.red.get() == 1 and self.blue.get() == 1:
-                tick_red.flash()
-                tick_blue.flash()
-                tick_red.flash()
-                tick_blue.flash()
-                return
-
-            if self.red.get() == 1:
-                scheme = "red"
-                colour = "maroon"
-            elif self.blue.get() == 1:
-                scheme = "blue"
-                colour = "midnightblue"
+            
+            #self.after_idle(also_button_command(self))
 
             res = round(slider.get(),1)
             try:
@@ -1385,6 +1371,7 @@ class MBsetPage(tk.Frame):
             y = -limit
             X = -limit - res
             Yprev = 0
+
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
                 progress['value'] = (((X+limit)/(2*limit))*100)
                 self.update_idletasks()
@@ -1433,22 +1420,38 @@ class MBsetPage(tk.Frame):
             progress['value'] = 0 
             self.update_idletasks()
             slider.set(3)
-            self.axis.set(0)
+            self.axes.set(0)
             self.red.set(0)
             self.blue.set(0)
+            tick_red.deselect()
+            tick_blue.deselect()
+            tick.deselect()
             controller.show_frame(ComplexPage2)
+
+        def also_button_command(self):
+            if self.red.get() == 1:
+                scheme = "red"
+                colour = "maroon"
+            elif self.blue.get() == 1:
+                scheme = "blue"
+                colour = "midnightblue"
+            else:
+                scheme = "red"
+                colour = "maroon"
+            tk.Tk().after(1000, button_command(self, scheme, colour)) 
 
         label = ttk.Label(self, text="Line Width:", font=("Verdana", 9))
         self.current_value = tk.IntVar()
         slider = ttk.Scale(self, from_=0.1, to=5,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=3)
         current_value_label = ttk.Label(self, text='3')
-        self.axes = tk.IntVar()
-        self.red = tk.IntVar()
-        self.blue = tk.IntVar()
+        
         tick_red = tk.Checkbutton(self, text="Red", selectcolor="red", variable=self.red, command=lambda: check_box(self, "red"))
         tick_blue = tk.Checkbutton(self, text="Blue", selectcolor="royalblue", variable=self.blue, command=lambda: check_box(self, "blue"))
         tick = tk.Checkbutton(self, text="Draw Axes", variable=self.axes, command=lambda: check_box(self,"axes"))
-        button1 = ttk.Button(self, text="Draw", command=lambda: button_command(self))
+
+        button1 = ttk.Button(self, text="Draw", command= lambda:also_button_command(self))
+        #button1 = ttk.Button(self, text="Draw", command= threading.Thread(target=lambda:button_command(self)).start())
+
         button2 = ttk.Button(self, text="Back", command=lambda: controller.show_frame(ComplexPage2))
         progress = ttk.Progressbar(self, orient ='horizontal',length = 100, mode = 'determinate')
 
