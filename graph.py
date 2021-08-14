@@ -1832,6 +1832,8 @@ class calculator(tk.Frame):
         ttk.Button(tab1, text="Backets", command=brackets).grid(row=6, column=1, sticky="W")
         ttk.Button(tab1, text="Back", command=lambda: controller.show_frame(StartPage)).grid(row=5, column=0, pady=35, padx=20, sticky="W")
 
+        sumIn.bind("<Return>", lambda event: enter(sumIn))
+
         label2 = ttk.Label(tab2, font=(10), text="g = 9.80665 \npi = "+str(math.pi)+\
                                                 "\ne = "+str(math.e)+" \nh = 6.62607004e-34\
                                                 \nsin, cos and tan() \nsin^-1, cos^-1 and tan^-1 (Radians only)\nans (for previus answer)\
