@@ -1044,17 +1044,17 @@ class ComplexPage2(tk.Frame):
         label.pack(pady=10, padx=10)
 
         point_button = ttk.Button(self, text="Compelx number", command=lambda: controller.show_frame(complexPointPage))
-        point_button.pack(pady=5)
+        point_button.pack(pady=12)
         circle_button = ttk.Button(self, text="Circle", cursor="circle", command=lambda: controller.show_frame(ComplexCiclePage))
-        circle_button.pack(pady=5)
+        circle_button.pack(pady=12)
         HalfLine_button= ttk.Button(self, text="Half Line", command=lambda: controller.show_frame(half_line_Page))      
-        HalfLine_button.pack(pady=5)
+        HalfLine_button.pack(pady=12)
         bisector_button= ttk.Button(self, text="Perpendicular Bisector", command=lambda: controller.show_frame(PbisectorPage))      
-        bisector_button.pack(pady=5)
+        bisector_button.pack(pady=12)
         MBset_button= ttk.Button(self, text="Mandelbrot Set", command=lambda: controller.show_frame(MBsetPage))      
-        MBset_button.pack(pady=5)
+        MBset_button.pack(pady=12)
         Home_button = ttk.Button(self, text="Back", command=lambda: controller.show_frame(StartPage))
-        Home_button.pack(pady=25)
+        Home_button.pack(pady=30)
 
         toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
@@ -1083,6 +1083,7 @@ class complexPointPage(tk.Frame):
                 y = float(Y_pointin.get())
             except:
                 popupmesg("!","Can't plot that")
+                return
             if self.Details.get() == 1:
                 pi = math.pi
                 modulus = math.sqrt((x**2) + (y**2))
@@ -1371,7 +1372,7 @@ class MBsetPage(tk.Frame):
             y = -limit
             X = -limit - res
             Yprev = 0
-
+            
             while X <= (limit - res):                                                                 #x loop starting at -400 each time
                 progress['value'] = (((X+limit)/(2*limit))*100)
                 self.update_idletasks()
@@ -1442,8 +1443,8 @@ class MBsetPage(tk.Frame):
 
         label = ttk.Label(self, text="Line Width:", font=("Verdana", 9))
         self.current_value = tk.IntVar()
-        slider = ttk.Scale(self, from_=0.1, to=5,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=3)
-        current_value_label = ttk.Label(self, text='3')
+        slider = ttk.Scale(self, from_=0.1, to=3,  orient='horizontal', variable=self.current_value, command=lambda x: slider_changed(self), value=1.5)
+        current_value_label = ttk.Label(self, text='1.5')
         
         tick_red = tk.Checkbutton(self, text="Red", selectcolor="red", variable=self.red, command=lambda: check_box(self, "red"))
         tick_blue = tk.Checkbutton(self, text="Blue", selectcolor="royalblue", variable=self.blue, command=lambda: check_box(self, "blue"))
