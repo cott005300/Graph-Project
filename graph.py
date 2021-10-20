@@ -33,7 +33,7 @@ from fractions import Fraction
 from decimal import Decimal
 from math import ceil, degrees, e, sqrt as sqrt
 sys.setrecursionlimit(5000)
-#print(sys.getrecursionlimit())
+#print(sys.getrecursionlimit())     #how deep functions can be re-called
 
 style.use("ggplot")
 ctrlmenu = None
@@ -174,13 +174,12 @@ def undo():
         del graph_storage[-1]
         canvas.draw()
     if colour_index > 0:
-        colour_index -= 1
+        colour_index -= 1    
 
 class main(tk.Tk):                                                          #inhertit from tk
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
         global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
-
         tk.Tk.iconbitmap(self, default="p icon.ico")
         tk.Tk.wm_title(self, "Peter's graph")
 
@@ -296,6 +295,7 @@ class main(tk.Tk):                                                          #inh
 
         pagemenu = tk.Menu(menubar, tearoff=0)
         pagemenu.add_command(label="Home", command= lambda: self.show_frame(StartPage))
+        pagemenu.add_command(label="Calculator", command= lambda: self.show_frame(calculator))
         pagemenu.add_command(label="Stop Watch", command= StopWatch)
         pagemenu.add_command(label="Sketch", command= Turtle)
         menubar.add_cascade(label="Pages", menu=pagemenu)
@@ -323,6 +323,7 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        #re-label the graph with the right axis
         def Real():
             global axes_type
             if axes_type != "Real":
@@ -344,9 +345,8 @@ class StartPage(tk.Frame):
             axes_type = "Complex"
             controller.show_frame(ComplexPage2)
 
-
         #self.configure(background='dodgerblue')
-        label = ttk.Label(self, text="Home", font=("Verdana", 12))
+        label = ttk.Label(self, text="Home", font=("Verdana", 12))                  #Home page: list of buttons
         label.pack(pady=10, padx=25)
         button2 = ttk.Button(self, text="Cartesian Grid", command=Real) 
         button2.pack(pady=15)
@@ -361,7 +361,7 @@ class StartPage(tk.Frame):
         button4 = ttk.Button(self, text="Sort Algorithms", command=lambda:controller.show_frame(sortPage) )
         button4.pack(pady=15)
 
-        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar = NavigationToolbar2Tk(canvas, self)                                        #adding tool bar
         toolbar.update()
         canvas.get_tk_widget().pack(side=tk.TOP, fill="both", expand=True)
         canvas._tkcanvas.pack(side=tk.TOP, fill="both", expand=True)
@@ -2039,6 +2039,7 @@ class draw():
         x = []
         y = []
         step = 0.01
+
         nx = -limit
 
         graph_copy = graph
@@ -2418,8 +2419,8 @@ class graph_details():
             roots.append((-b+(math.sqrt((b**2)-(4*(a*c))))) / (2*a))                            #quadratic formula
             roots.append((-b-(math.sqrt((b**2)-(4*(a*c))))) / (2*a))
         else:
-            roots.append(0)
-            roots.append(0)
+            roots.append(None)
+            roots.append(None)
 
     def cubic(a, b, c, d):
         global roots
