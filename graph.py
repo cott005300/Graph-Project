@@ -33,6 +33,9 @@ from fractions import Fraction
 from decimal import Decimal
 from math import ceil, degrees, e, sqrt as sqrt
 sys.setrecursionlimit(5000)
+
+#FOR EXPORTING, cd, THEN: pyinstaller --onefile -w graph.py
+
 #print(sys.getrecursionlimit())     #how deep functions can be re-called
 
 style.use("ggplot")
@@ -151,9 +154,10 @@ def axis_size(limitIn):
         limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
     try:
         limit = float(limitIn)
-        if limitIn == 0:
+        if limitIn <= 0 or limitIn > 10000:
             raise
     except:
+        popupmesg("!","Cannot Take This Value")
         return
     s.axis([(1.05*-limit), (1.05*limit), (1.05*-limit), (1.05*limit)])
     line = l1.pop(0)
@@ -181,7 +185,7 @@ class main(tk.Tk):                                                          #inh
         global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
         tk.Tk.iconbitmap(self, default="p icon.ico")
-        tk.Tk.wm_title(self, "Peter's graph")
+        tk.Tk.wm_title(self, "Peter's Calculator")
 
         container = tk.Frame(self)                                          #edge of window
         container.pack(side="top", fill="both", expand=True)
