@@ -57,9 +57,9 @@ canvas = FigureCanvasTkAgg(f)
  #         break
  #     if password == None:
  #         sys.exit()
-
+#test
 #s.set_title("Cartesian coordinate system")
-
+print("test")
 limit = 40
 l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
