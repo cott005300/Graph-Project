@@ -122,7 +122,7 @@ def clear_axis(MBset):
         s.set_xlabel('Real')
         s.set_ylabel('Imaginary')
     else:
-        limit = 40
+        #limit = 40
         l1 = s.plot([-limit,limit],[0,0], "black")
         l2 = s.plot([0,0],[-limit,limit], "black")
         s.set_ylim([0-(1.05*limit), 0+(1.05*limit)])
@@ -153,7 +153,8 @@ def axis_size(limitIn):
     if limitIn == 0:
         limitIn = simpledialog.askstring("Axes Size", "Type an axes size")
     try:
-        limit = float(limitIn)
+        limitIn = float(limitIn)
+        limit = limitIn
         if limitIn <= 0 or limitIn > 10000:
             raise
     except:
@@ -337,7 +338,6 @@ class StartPage(tk.Frame):
                 canvas.draw()
             axes_type = "Real"
             controller.show_frame(PageTwo)
-            
             
         def Complex():
             global axes_type
