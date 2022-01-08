@@ -185,7 +185,8 @@ class main(tk.Tk):                                                          #inh
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
         global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
-        #tk.Tk.iconbitmap(self, default="p icon.ico")
+        if sys.platform != "darwin":
+            tk.Tk.iconbitmap(self, default="p icon.ico")
         tk.Tk.wm_title(self, "Peter's Calculator")
 
         container = tk.Frame(self)                                          #edge of window
