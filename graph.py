@@ -155,7 +155,7 @@ def axis_size(limitIn):
     try:
         limitIn = float(limitIn)
         limit = limitIn
-        if limitIn <= 0 or limitIn > 10000:
+        if limitIn <= 0:
             raise
     except:
         popupmesg("!","Cannot Take This Value")
@@ -185,7 +185,7 @@ class main(tk.Tk):                                                          #inh
     def __init__(self, *args, **kwargs):                                    #initailisation, arguments, key word arguments (variables / disctionaries)
         global ctrlmenu
         tk.Tk.__init__(self,*args,**kwargs)
-        tk.Tk.iconbitmap(self, default="p icon.ico")
+        #tk.Tk.iconbitmap(self, default="p icon.ico")
         tk.Tk.wm_title(self, "Peter's Calculator")
 
         container = tk.Frame(self)                                          #edge of window
@@ -295,7 +295,7 @@ class main(tk.Tk):                                                          #inh
         ctrlmenu.add_command(label="Axes Reset", command= lambda: clear_axis(False))
         ctrlmenu.add_separator()
         ctrlmenu.add_command(label="Restart", command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
-        ctrlmenu.add_command(label="Exit", command=sys.exit)
+        ctrlmenu.add_command(label="Exit", command=lambda:os._exit(1))
         menubar.add_cascade(label="Controls", menu=ctrlmenu)
 
         pagemenu = tk.Menu(menubar, tearoff=0)
@@ -1356,9 +1356,7 @@ class MBsetPage(tk.Frame):
         def button_command(self, scheme, colour):
             global x, y
             global limit
-            
             #self.after_idle(also_button_command(self))
-
             res = round(slider.get(),1)
             try:
                 if res == "":
@@ -2042,7 +2040,8 @@ class draw():
         global x, y
         x = []
         y = []
-        step = 0.01
+        #step = 0.01
+        step = 0.0002 * limit
 
         nx = -limit
 
