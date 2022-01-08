@@ -60,7 +60,7 @@ canvas = FigureCanvasTkAgg(f)
 
 #s.set_title("Cartesian coordinate system")
 
-limit = 40
+limit = 50
 l1 = s.plot([-limit,limit],[0,0], "black")
 l2 = s.plot([0,0],[-limit,limit], "black")
 canvas.draw()
@@ -437,7 +437,7 @@ class GraphPage(tk.Frame):
                         popupmesg(org_graph ,"Graph type = "+graph_type+"\na = "+str(a)+"  b ="+str(b)+"  c = "+str(c)+"  d = "+str(d)+"\n\nTurning point(s) = " + turning_points_string)
                 controller.show_frame(PageTwo)
             else:
-                popupmesg(" ","Please try again")          
+                popupmesg("!","Please try again")          
 
         def edit():
             global undone
@@ -2136,6 +2136,7 @@ class draw():
         colour_change()
 
     def point(X_pointin, Y_pointin):
+        msg = "That isn't a number!"
         try:
             X_point = X_pointin
             Y_point = Y_pointin
@@ -2146,6 +2147,7 @@ class draw():
             X_point = float(X_point)
             Y_point = float(Y_point)
             if X_point > limit or X_point < -limit or Y_point > limit or Y_point < -limit:
+                msg = "Number too big\nto fit on axis"
                 raise                   #leave 'try' statement and enter 'except' statement
             if X_point.is_integer():
                 X_point = int(X_point)
@@ -2157,7 +2159,7 @@ class draw():
             colour_change()
             return True
         except:
-           popupmesg(" ! ","Can't take that!")
+           popupmesg(" ! ", msg)
            return False
 
     def Scatter(shape):
@@ -2252,16 +2254,16 @@ class graph_details():
         b = ""
         c = ""
         d = ""
-        abcd = []       #used to store a,b,c and d parts of function
+        abcd = []                                   #used to store a,b,c and d parts of function
         abcd = re.split("\s", graph)
         graph_type = ""
         for pos in range(0,len(abcd)):
-            temp = abcd[pos].find("**")        #find out weather this part is square or not, e.g. 2x^2
+            temp = abcd[pos].find("**")             #find out weather this part is square or not, e.g. 2x^2
             if temp == -1:
                 if graph_type == "":
                     graph_type = "linear"
             else:
-                temp2 = str(abcd[pos])[temp+2]     #position of power e.g. x**'3'
+                temp2 = str(abcd[pos])[temp+2]      #position of power e.g. x**'3'
                 if temp2 == "2" and str(abcd[pos])[temp-2] == "x":
                     if graph_type == "" or graph_type == "linear":
                         graph_type = "quadratic"
@@ -2285,7 +2287,7 @@ class graph_details():
 
                 else:                       #can find x
                     for j in range(0, len(abcd[i][:temp1-2])):
-                        if abcd[i][j].isnumeric():
+                        if abcd[i][j].isnumeric() or str(abcd[i][j]) == '.':
                             c += abcd[i][j]
                     if not(c):              #if no coefficeint, must be = 1
                         c = "1"
@@ -2294,7 +2296,7 @@ class graph_details():
 
             elif abcd[i][temp1+2] == "2" and abcd[i][temp1-2]== "x":   #if not linear
                 for j in range(0, len(abcd[i][:temp1-3])):
-                    if abcd[i][j].isnumeric():
+                    if abcd[i][j].isnumeric() or str(abcd[i][j]) == '.':
                         b += abcd[i][j]
                 if not(b):
                     b = "1"
@@ -2303,7 +2305,7 @@ class graph_details():
 
             elif abcd[i][temp1+2] == "3" and abcd[i][temp1-2]== "x":
                 for j in range(0, len(abcd[i][:temp1-3])):
-                    if abcd[i][j].isnumeric():
+                    if abcd[i][j].isnumeric() or str(abcd[i][j]) == '.':
                         a += abcd[i][j]
                 if not(a):
                     a = "1"
@@ -2312,21 +2314,21 @@ class graph_details():
         if not(a):                          #if no value = 0
             a = 0
         else:
-            a = int(a)                      #if is value = integer, not string
+            a = float(a)                      #if is value = integer, not string
         if not(b):
             b= 0
         else:
-            b = int(b)
+            b = float(b)
         if not(c):
             c = 0
         else:
-            c = int(c)
+            c = float(c)
         if not(d):
             d = 0
         else:
-            d = int(d)
- 
-        #print("a =",a, " b =",b, " c =", c, " d =",d)
+            d = float(d)
+
+       # print("a =",a, " b =",b, " c =", c, " d =",d)
         #print(graph_type)
 
         if graph_type == "linear":
