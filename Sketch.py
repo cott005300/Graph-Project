@@ -10,7 +10,7 @@ class sketch():
       
     def press():
         
-        turtle.Screen().setup(500,600,-100,50)                                                          #make scrren the right size (allowing for header and things)
+        turtle.Screen().setup(600,700)                                                          #make scrren the right size (allowing for header and things)
         turtle.Screen().title("Peter's turtle sketch")
 
         tum = turtle.Turtle("turtle")

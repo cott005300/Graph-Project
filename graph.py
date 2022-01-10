@@ -198,7 +198,7 @@ class main(tk.Tk):                                                          #inh
             popupmesg("Turtle Controls", "'Click & drag' turtle to draw \n'Click' to draw straight lines\
                                     \n'Right click' to clear \n'Space bar' for pen up \n'h' to hide turtle\
                                     \n'Z' for undo \n'Enter' for colour change")
-            pagemenu.entryconfig(2,state="disabled")
+            pagemenu.entryconfig(3,state="disabled")
             sketch.press()
         
         def label():
@@ -1862,7 +1862,7 @@ class SUVATPage(tk.Frame):
             a = A_pointin.get()
             t = T_pointin.get()
             try:
-                s, u, v, a, t = SUVAT.calculate(s, u, v, a, t)
+                s, u, v, a, t, equ = SUVAT.calculate(s, u, v, a, t)
                 clear()
                 S_pointin.insert(0, str(s))
                 U_pointin.insert(0, str(u))
@@ -1871,7 +1871,8 @@ class SUVATPage(tk.Frame):
                 T_pointin.insert(0, str(t))
                 #popupmesg("SUVAT", "S = "+str(s)+"\nU = "+str(u)+"\nV = "+str(v)+"\nA = "+str(a)+"\nT = "+str(t))
             except:
-                popupmesg("!", "I can't take that")
+                popupmesg("!", "i can't use all these values")
+            equ_label.config(text = "Used:\n" + equ[:-1])
         
         def clear():
             S_pointin.delete(0, tk.END)
@@ -1879,6 +1880,7 @@ class SUVATPage(tk.Frame):
             V_pointin.delete(0, tk.END)
             A_pointin.delete(0, tk.END)
             T_pointin.delete(0, tk.END)
+            equ_label.config(text="")
 
         def back():
             clear()
@@ -1894,15 +1896,17 @@ class SUVATPage(tk.Frame):
         V_pointin = ttk.Entry(self, width="15")
         A_pointin = ttk.Entry(self, width="15")
         T_pointin = ttk.Entry(self, width="15")
+        equ_label = ttk.Label(self, text="")
         S_pointin.grid(row=0, column=1,pady=10)
         U_pointin.grid(row=1, column=1,pady=10)
         V_pointin.grid(row=2, column=1,pady=10)
         A_pointin.grid(row=3, column=1,pady=10)
         T_pointin.grid(row=4, column=1,pady=10)
+        equ_label.grid(row=5, column=1, pady=5)
 
-        button1 = ttk.Button(self, text="Clear", command=clear).grid(row=5, column=0, pady=20, padx=65)
-        button2 = ttk.Button(self, text="Enter", command=lambda: enter(self, S_pointin, U_pointin, V_pointin, A_pointin, T_pointin)).grid(row=5, column=1, pady=20)
-        button3 = ttk.Button(self, text="Back", command=back).grid(row=6, column=0)
+        button1 = ttk.Button(self, text="Clear", command=clear).grid(row=6, column=0, pady=20, padx=65)
+        button2 = ttk.Button(self, text="Enter", command=lambda: enter(self, S_pointin, U_pointin, V_pointin, A_pointin, T_pointin)).grid(row=6, column=1, pady=20)
+        button3 = ttk.Button(self, text="Back", command=back).grid(row=7, column=0)
 
 
 class sortPage(tk.Frame):
@@ -2524,5 +2528,5 @@ class graph_details():
 
 
 app = main()
-app.geometry("360x440+825+1")
+app.geometry("400x450+825+1")
 app.mainloop()
