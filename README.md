@@ -1,6 +1,6 @@
 # Graphical Calculator - ALevel Project
 
-This is my ALevel project source code.
+This is my ALevel project source code (received grade A).
 
 I made a graphical calculator in python.
 
